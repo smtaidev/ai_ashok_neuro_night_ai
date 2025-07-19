@@ -1,0 +1,26 @@
+myenv/
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+
+# --- IDE / Editor specific files ---
+# Ignore configuration files created by editors like VS Code or PyCharm.
+.vscode/
+.idea/
+
+
+# --- Build & Distribution Artifacts ---
+# Common folders for Python package builds.
+build/
+dist/
+*.egg-info/
+.env
+
+# --- Log Files ---
+# Ignore any log files that might be generated.
+*.log
+*.log.*
+*.log.*

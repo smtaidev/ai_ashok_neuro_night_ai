@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  clarhet-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: clarhet-ai-api
+    ports:
+      - "8019:8019"
+      - "8501:8501"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY}
+      - GROQ_API_KEY=${GROQ_API_KEY}
+    env_file:
+      - .env
+    volumes:
+      - ./app:/app/app  # Mount app directory for development
+      - ./frontend.py:/app/frontend.py  # Mount Streamlit app
+    restart: unless-stopped
+    networks:
+      - clarhet-network
+    command: >
+      sh -c "cd /app && uvicorn main:app --host 0.0.0.0 --port 8019 &
+             cd /app && streamlit run frontend.py --server.port 8501 --server.address 0.0.0.0 --server.headless true"
+
+  # Optional: Add a reverse proxy (nginx)
+  nginx:
+    image: nginx:alpine
+    container_name: clarhet-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - clarhet-api
+    networks:
+      - clarhet-network
+    profiles:
+      - production
+
+networks:
+  clarhet-network:
+    driver: bridge
