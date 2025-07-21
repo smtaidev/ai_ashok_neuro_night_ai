@@ -5,7 +5,7 @@ from app.api.models.vision_model import VisionInput, VisionResponse
 from app.services.vision_service import process_vision
 router = APIRouter()
 
-@router.post("/analyze", response_model=VisionResponse, tags=["Vision"])
+@router.post("/vision", response_model=VisionResponse, tags=["Vision"])
 
 async def analyze_vision(input_data: VisionInput= Body(..., example={
     "vision_statement": "I want to create a sustainable business that lead in innovative technology solutions while prioritizing environmental responsibility and community engagement."

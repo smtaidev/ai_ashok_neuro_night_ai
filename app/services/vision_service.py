@@ -28,9 +28,9 @@ async def process_vision(vision_text: str) -> VisionResponse:
     You are a seasoned business strategist. Analyze the following business vision statement and provide structured output as valid JSON only with these keys:
 
     - vision_score: integer (1–100) assessing clarity, ambition, and impact
-    - vision_summary: concise summary (1–2 sentences)
-    - vision_recommendations: list of 3 suggestions to improve the statement
-    - vision_alternatives: list of exactly 3 rewritten vision statements that are stronger
+    - vision_summary: concise summary (2-3 sentences) of strengths and weaknesses
+    - vision_recommendations: list of actionable suggestions for improvement
+    - vision_alternatives: list of exactly 3 rewritten vision statements that Concise & Bold plus Inspirational & Human-Centric Innovation-Focused & Strategic
 
     Return output EXACTLY as JSON, with no additional text.
     """

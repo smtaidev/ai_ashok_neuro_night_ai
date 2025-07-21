@@ -1,7 +1,7 @@
 # main.py
 
 from fastapi import FastAPI
-from app.api.endpoints import trend_summary,swot_analysis,challenge_risk, vision, strategic_theme 
+from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme
 
 app = FastAPI(
     title="Clarhet AI API",
@@ -24,14 +24,25 @@ app.include_router(
 
 app.include_router(
     vision.router,
-    prefix="/api/vision"
+    prefix="/api/blueprint"
 )
 
 app.include_router(
     strategic_theme.router,
-    prefix="/api/strategic_theme"
+    prefix="/api/blueprint"
     
 )
+
+
+
+#==============================
+# Include the new strategic themes router
+app.include_router(
+    strategic_theme2.router,
+    prefix="/api/strategic-theme2",
+    tags=["Strategic Theme2"] # This creates a new section in the docs
+)
+
 
 @app.get("/", tags=["Root"])
 def read_root():

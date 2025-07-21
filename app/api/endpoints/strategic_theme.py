@@ -4,7 +4,7 @@ from app.services.strategic_theme_service import process_strategic_theme
 
 router = APIRouter()
 
-@router.post("/analyze/strategic_theme", response_model=StrategicThemeResponse, tags= ["Strategic Theme"])
+@router.post("/strategic_theme", response_model=StrategicThemeResponse, tags= ["Strategic Theme"])
 
 
 async def analyze_strategic_theme_endpoint(data: StrategicThemeInput= Body(..., example={
