@@ -1,3 +1,5 @@
+# app/services/strategic_theme2_service.py
+
 from openai import AsyncOpenAI
 import json
 from app.core.config import settings

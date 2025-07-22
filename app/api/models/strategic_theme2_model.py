@@ -1,8 +1,9 @@
+# app/api/models/strategic_theme2_model.py
+
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 
-# NOTE: These are imported from your existing modules.
-# We are assuming these files and models exist in your project.
+
 from .swot_model import SWOTDataInput
 from .challenge_model import ScoredChallengeInput
 

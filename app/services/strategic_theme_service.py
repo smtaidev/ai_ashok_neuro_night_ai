@@ -1,3 +1,5 @@
+# app/services/strategic_theme_service.py
+
 from openai import AsyncOpenAI
 from ..core.config import settings
 from ..api.models.strategic_theme_model import StrategicThemeResponse

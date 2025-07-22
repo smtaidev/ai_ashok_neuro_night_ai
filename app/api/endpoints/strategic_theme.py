@@ -1,3 +1,6 @@
+# app/api/endpoints/strategic_theme.py
+
+
 from fastapi import APIRouter, Body, HTTPException
 from app.api.models.strategic_theme_model import StrategicThemeInput, StrategicThemeResponse
 from app.services.strategic_theme_service import process_strategic_theme

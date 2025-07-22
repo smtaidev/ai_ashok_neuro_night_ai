@@ -1,3 +1,5 @@
+# app/api/models/challenge_model.py
+
 from pydantic import BaseModel
 from typing import Literal
 from app.api.models.trend_summary_model import TrendDataInput

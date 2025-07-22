@@ -1,3 +1,6 @@
+# app/services/trend_summary_service.py
+
+
 from openai import AsyncOpenAI
 import json
 import re

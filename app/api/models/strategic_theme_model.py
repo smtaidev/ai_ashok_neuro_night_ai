@@ -1,3 +1,5 @@
+# app/api/models/strategic_theme_model.py
+
 from pydantic import BaseModel
 from typing import List
 
