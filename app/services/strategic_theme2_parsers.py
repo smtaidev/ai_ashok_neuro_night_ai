@@ -1,5 +1,3 @@
-# app/services/strategic_theme2_parsers.py
-
 import json
 from pydantic import BaseModel, ValidationError
 from app.api.models.strategic_theme2_model import *

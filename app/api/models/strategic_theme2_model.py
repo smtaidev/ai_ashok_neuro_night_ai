@@ -40,7 +40,7 @@ class GoalMappingRequest(BaseModel):
 class BenchmarkingRequest(BaseModel):
     profile: CompanyProfile
 
-# --- Response Models for Each Endpoint ---
+#  Response Models for Each Endpoint ---
 
 class GapDetectionResponse(BaseModel):
     missing_themes: str

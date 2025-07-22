@@ -6,7 +6,6 @@ from app.api.models.strategic_theme2_model import *
 
 router = APIRouter()
 
-# --- Example Data Payloads (Verified against your models) ---
 gap_detection_example = {
   "themes": [
     {"name": "Digital Transformation", "description": "Modernize core infrastructure."},
@@ -14,14 +13,12 @@ gap_detection_example = {
   ],
   "context": {
     "vision": "To become the leading provider of sustainable packaging solutions.",
-    # This structure is now confirmed to be correct based on your swot_model.py
     "swot": {
         "strengths": ["Strong brand reputation", "Patented recycling technology"],
         "weaknesses": ["Limited international presence"],
         "opportunities": ["Growing market for eco-friendly products"],
         "threats": ["Rising raw material costs"]
     },
-    # This structure matches the ScoredChallengeInput from your challenge_model.py
     "challenges": [
         {
             "title": "Supply Chain Volatility",
@@ -39,7 +36,9 @@ wording_suggestions_example = {"themes": [{"name": "Make Things Better", "descri
 goal_mapping_example = {"themes": [{"name": "Operational Excellence", "description": "Streamline internal processes."}]}
 benchmarking_example = {"profile": {"industry": "B2B SaaS", "size": "50-200 Employees", "businessModel": "Subscription"}}
 
-# --- API Endpoints ---
+
+# API Endpoints 
+
 @router.post("/gap-detection", response_model=GapDetectionResponse, summary="A. Identify Gaps in Strategic Themes")
 async def analyze_gaps(request: GapDetectionRequest = Body(..., example=gap_detection_example)):
     if not request.themes: raise HTTPException(status_code=400, detail="At least one strategic theme is required.")
