@@ -13,7 +13,7 @@ async def _call_openai_for_json(system_prompt: str, user_prompt: str) -> str:
     """Helper function to call the OpenAI API in JSON mode and print the response for debugging."""
     try:
         response = await client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             response_format={"type": "json_object"},
             messages=[
                 {"role": "system", "content": system_prompt},
