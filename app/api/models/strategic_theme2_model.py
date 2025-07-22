@@ -1,7 +1,10 @@
-# app/api/models/strategic_theme2_model.py
-
 from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
+
+# NOTE: These are imported from your existing modules.
+# We are assuming these files and models exist in your project.
+from .swot_model import SWOTDataInput
+from .challenge_model import ScoredChallengeInput
 
 # --- Shared Base Models ---
 
@@ -10,16 +13,16 @@ class ThemeItem(BaseModel):
     description: str
 
 class StrategyContext(BaseModel):
+    """A container for all the contextual data needed for theme analysis."""
     vision: Optional[str] = None
-    capabilities: Optional[str] = None
-    swot: Optional[Dict[str, Any]] = None # Can be a complex object
-    challenges: Optional[List[str]] = None
+    swot: Optional[SWOTDataInput] = None
+    challenges: Optional[List[ScoredChallengeInput]] = None
 
 class CompanyProfile(BaseModel):
     industry: Optional[str] = None
-    size: Optional[str] = None # e.g., "10-50 employees", "1000+ employees"
+    size: Optional[str] = None # e.g., "10-50 employees"
     region: Optional[str] = None
-    model: Optional[str] = Field(None, alias="businessModel") # e.g., "B2B SaaS", "D2C E-commerce"
+    businessModel: Optional[str] = None
 
 # --- Request Models for Each Endpoint ---
 
@@ -36,18 +39,14 @@ class GoalMappingRequest(BaseModel):
 class BenchmarkingRequest(BaseModel):
     profile: CompanyProfile
 
-
-
-
 # --- Response Models for Each Endpoint ---
 
-# A. Gap Detection
 class GapDetectionResponse(BaseModel):
     missing_themes: str
     overlapping_themes: str
     unused_elements: str
+    error: Optional[str] = None
 
-# B. Wording Suggestions
 class WordingSuggestion(BaseModel):
     original_name: str
     improved_name: str
@@ -57,8 +56,8 @@ class WordingSuggestion(BaseModel):
 
 class WordingSuggestionsResponse(BaseModel):
     suggestions: List[WordingSuggestion]
+    error: Optional[str] = None
 
-# C. Goal Mapping
 class MappedGoal(BaseModel):
     goal: str
     goal_type: str
@@ -69,8 +68,8 @@ class GoalMapping(BaseModel):
 
 class GoalMappingResponse(BaseModel):
     mapped_themes: List[GoalMapping]
+    error: Optional[str] = None
 
-# D. Benchmarking
 class BenchmarkTheme(BaseModel):
     theme_name: str
     description: str
@@ -78,3 +77,4 @@ class BenchmarkTheme(BaseModel):
 
 class BenchmarkingResponse(BaseModel):
     benchmark_themes: List[BenchmarkTheme]
+    error: Optional[str] = None
