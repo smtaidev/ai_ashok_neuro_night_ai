@@ -16,13 +16,13 @@ async def _call_openai_for_json(system_prompt: str, user_prompt: str) -> str:
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.5 # A little more creativity needed here
+            temperature=0.5 
         )
         return response.choices[0].message.content
     except Exception as e:
         return json.dumps({"error": f"OpenAI API call failed: {e}"})
 
-# --- The Main Service Function ---
+#  The Main Service Function 
 
 async def generate_differentiation_analysis(request: DifferentiationRequest) -> DifferentiationResponse:
     system_prompt = "You are a brand and career strategist. Your job is to take a user's self-described capability and articulate what makes it uniquely valuable and differentiating in a professional context. Your response must be a single, valid JSON object."

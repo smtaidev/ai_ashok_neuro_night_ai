@@ -25,7 +25,7 @@ def _parse_json_to_model(text: str, model_class: type[BaseModel]):
         default_data['error'] = error_message
         return model_class(**default_data)
 
-# --- Specific Parser Functions using the new direct parser ---
+# Specific Parser Functions using the new direct parser 
 
 def json_to_gap_detection_response(text: str) -> GapDetectionResponse:
     return _parse_json_to_model(text, GapDetectionResponse)

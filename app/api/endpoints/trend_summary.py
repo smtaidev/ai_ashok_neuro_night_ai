@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Body, HTTPException
 from app.api.models.trend_summary_model import TrendDataInput, TrendCombinedResponse
-from app.services import trend_summary_service,top_trends_service
+from app.services import trend_summary_service
 
 router = APIRouter()
 

@@ -3,7 +3,7 @@
 from openai import AsyncOpenAI
 import json
 from app.core.config import settings
-from app.services import strategic_theme2_parsers as parsers # Using your renamed parser file
+from app.utils import strategic_theme2_parsers as parsers # Using your renamed parser file
 from app.api.models.strategic_theme2_model import * # Using your renamed model file
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
