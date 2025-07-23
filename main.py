@@ -1,7 +1,7 @@
 # main.py
 
 from fastapi import FastAPI
-from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation
+from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation, business_goal
 
 app = FastAPI(
     title="Clarhet AI API",
@@ -49,6 +49,11 @@ app.include_router(
     tags=["Differentiation Analysis"]
 )
 
+app.include_router(
+    business_goal.router,
+    prefix="/api/business-goal",
+    tags=["Business Goals"]
+)
 
 @app.get("/", tags=["Root"])
 def read_root():
