@@ -1,12 +1,12 @@
 # main.py
 
 from fastapi import FastAPI
-from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme
+from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation
 
 app = FastAPI(
     title="Clarhet AI API",
     description="API for strategic business analysis, including Trends and SWOT.",
-    version="1.0.0"
+    version="1.2.0"
 )
 app.include_router(
     trend_summary.router, 
@@ -41,6 +41,12 @@ app.include_router(
     strategic_theme2.router,
     prefix="/api/strategic-theme2",
     tags=["Strategic Theme2"] # This creates a new section in the docs
+)
+
+app.include_router(
+    differentiation.router,
+    prefix="/api/differentiation",
+    tags=["Differentiation Analysis"]
 )
 
 
