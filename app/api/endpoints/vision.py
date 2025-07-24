@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Body
+from typing import Dict
 from app.api.models.vision_model import VisionInput, VisionResponse
 from app.services.vision_service import process_vision
 
@@ -15,14 +16,17 @@ async def analyze_vision(
     - If the input text is not a valid vision, it returns a 400 error.
     - If valid, it returns a score, summary, recommendations, and alternatives.
     """
+    # The service returns either the model or an error dict
     response = await process_vision(input_data.vision_statement)
 
-    # If the AI flagged the input as invalid, return a 400 Bad Request error to the client.
-    if not response.is_valid:
+    # Check the type of the response to determine the outcome
+    if isinstance(response, Dict) and "error" in response:
+        # If it's a dict with an error, raise a 400 Bad Request
         raise HTTPException(
             status_code=400,
-            detail=response.error_message or "The provided text was determined to be irrelevant or not a valid business vision statement."
+            detail=response["error"]
         )
 
-    # If the input was valid, return the full 200 OK response with the analysis.
+    # If we get here, the response is a valid VisionResponse model.
+    # FastAPI automatically sends it with a 200 OK status.
     return response

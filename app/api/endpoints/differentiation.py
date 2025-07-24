@@ -12,21 +12,20 @@ router = APIRouter()
     tags=["Differentiation Analysis"]
 )
 async def analyze_differentiation(
+    # The example in the Body is now updated to remove the 'type' field
     request: DifferentiationRequest = Body(..., example={
-        "capability": "I am a Python developer specializing in FastAPI.",
-        "type": "differentiating type"
+        "capability": "I am a Python developer specializing in FastAPI."
     })
 ):
     """
     Takes a user's capability and generates an analysis of its
     unique and differentiating factors. Rejects irrelevant input.
     """
-    # The service returns either the model or an error dict
+    # This logic remains the same and is still correct
     response = await differentiation_service.generate_differentiation_analysis(request)
 
     # Check the type of the response to determine the outcome
     if isinstance(response, Dict) and "error" in response:
         raise HTTPException(status_code=400, detail=response["error"])
 
-    # If we get here, the response is a valid DifferentiationResponse model
     return response
