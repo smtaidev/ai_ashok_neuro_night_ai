@@ -5,7 +5,6 @@ from app.api.models.strategic_theme2_model import *
 
 router = APIRouter()
 
-# --- Example Data Payloads (as they were) ---
 gap_detection_example = {
   "themes": [
     {"name": "Digital Transformation", "description": "Modernize core infrastructure."},
@@ -21,6 +20,10 @@ wording_suggestions_example = {"themes": [{"name": "Make Things Better", "descri
 goal_mapping_example = {"themes": [{"name": "Operational Excellence", "description": "Streamline internal processes."}]}
 benchmarking_example = {"profile": {"industry": "B2B SaaS", "size": "50-200 Employees", "businessModel": "Subscription"}}
 
+
+
+
+
 # --- API Endpoints with Full Implementation ---
 @router.post("/gap-detection", response_model=GapDetectionResponse, summary="A. Identify Gaps in Strategic Themes")
 async def analyze_gaps(request: GapDetectionRequest = Body(..., example=gap_detection_example)):
@@ -31,6 +34,9 @@ async def analyze_gaps(request: GapDetectionRequest = Body(..., example=gap_dete
         raise HTTPException(status_code=400, detail=response["error"])
     return response
 
+
+
+
 @router.post("/wording-suggestions", response_model=WordingSuggestionsResponse, summary="B. Get Wording Suggestions for Themes")
 async def suggest_wording(request: WordingSuggestionsRequest = Body(..., example=wording_suggestions_example)):
     if not request.themes:
@@ -40,6 +46,9 @@ async def suggest_wording(request: WordingSuggestionsRequest = Body(..., example
         raise HTTPException(status_code=400, detail=response["error"])
     return response
 
+
+
+
 @router.post("/goal-mapping", response_model=GoalMappingResponse, summary="C. Map Business Goals to Themes")
 async def map_goals(request: GoalMappingRequest = Body(..., example=goal_mapping_example)):
     if not request.themes:
@@ -48,6 +57,8 @@ async def map_goals(request: GoalMappingRequest = Body(..., example=goal_mapping
     if isinstance(response, Dict) and "error" in response:
         raise HTTPException(status_code=400, detail=response["error"])
     return response
+
+
 
 @router.post("/benchmarking", response_model=BenchmarkingResponse, summary="D. Benchmark Themes Against Industry Peers")
 async def benchmark_themes(request: BenchmarkingRequest = Body(..., example=benchmarking_example)):
