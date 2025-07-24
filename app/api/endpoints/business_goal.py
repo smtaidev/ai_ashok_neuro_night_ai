@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Body, HTTPException
+from typing import Dict
 from app.services import business_goal_service
 from app.api.models.business_goal_model import BusinessGoalRequest, BusinessGoalResponse
 
@@ -44,12 +45,14 @@ async def create_business_goal_analysis(
 ):
     """
     Takes detailed information about a business goal and returns a structured
-    AI-generated analysis of risks, compliance, and strategic realignments.
+    AI-generated analysis. Rejects irrelevant answers.
     """
-    try:
-        response = await business_goal_service.analyze_business_goal(request)
-        if response.error:
-            raise HTTPException(status_code=500, detail=response.error)
-        return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"An unexpected error occurred: {str(e)}")
+    # The service returns either the model or an error dict
+    response = await business_goal_service.analyze_business_goal(request)
+
+    # Check the type of the response to determine the outcome
+    if isinstance(response, Dict) and "error" in response:
+        raise HTTPException(status_code=400, detail=response["error"])
+
+    # If we get here, the response is a valid BusinessGoalResponse model
+    return response

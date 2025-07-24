@@ -1,7 +1,7 @@
 from openai import AsyncOpenAI
 import json
+from typing import Union, Dict
 from app.core.config import settings
-from app.utils import business_goal_parsers as parsers
 from app.api.models.business_goal_model import BusinessGoalRequest, BusinessGoalResponse
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
@@ -12,65 +12,64 @@ async def _call_openai_for_json(system_prompt: str, user_prompt: str) -> str:
         response = await client.chat.completions.create(
             model="gpt-4o",
             response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             temperature=0.3
         )
         return response.choices[0].message.content
     except Exception as e:
-        return json.dumps({"error": f"OpenAI API call failed: {e}"})
+        return json.dumps({"is_valid": False, "error_message": f"OpenAI API call failed: {e}"})
 
-async def analyze_business_goal(request: BusinessGoalRequest) -> BusinessGoalResponse:
-    system_prompt = "You are a senior business strategist and risk analyst. Your job is to analyze detailed information about a business goal and synthesize it into six key summary sections. Your response must be a single, valid JSON object."
-    json_schema = BusinessGoalResponse.model_json_schema()
+async def analyze_business_goal(request: BusinessGoalRequest) -> Union[BusinessGoalResponse, Dict]:
+    """
+    Analyzes user-provided answers for a business goal. If irrelevant, returns an error dict.
+    If valid, returns a BusinessGoalResponse model.
+    """
+    # Define a schema that includes our validation fields
+    validation_schema = {
+        "type": "object",
+        "properties": {
+            "is_valid": {"type": "boolean"},
+            "error_message": {"type": "string", "description": "Reason for invalid input, if applicable."},
+            "analysis": BusinessGoalResponse.model_json_schema()
+        },
+        "required": ["is_valid"]
+    }
     
-    # Format the input data into a clean text block for the prompt
+    # Format the input data for the AI to easily see the answers
     input_data_text = f"""
-    ### Goal Analysis Input
+    ### Goal Analysis Input Data
+    1. Potential Risks Answer: "{request.potential_risks_and_challenges.answer or ""}"
+    2. Regulatory Compliance Answer: "{request.regulatory_compliance.answer or ""}"
+    3. Cultural Realignment Answer: "{request.cultural_realignment.answer or ""}"
+    4. Change Management Answer: "{request.change_management.answer or ""}"
+    5. Learning and Development Answer: "{request.learning_and_development.answer or ""}"
+    (Capability information is provided for context only).
+    """
 
-    **1. Potential Risks and Challenges:**
-    - Answer: {request.potential_risks_and_challenges.answer or "Not provided"}
-    - Impact: {request.potential_risks_and_challenges.impact or "N/A"}
+    system_prompt = f"""
+    You are a senior business strategist. Your first task is to validate the user's text `answer` fields for business relevance.
 
-    **2. Regulatory Compliance:**
-    - Answer: {request.regulatory_compliance.answer or "Not provided"}
-    - Impact: {request.regulatory_compliance.impact or "N/A"}
+    **CRITICAL INSTRUCTIONS:**
+    1.  Examine the five "Answer" fields provided in the user's input.
+    2.  If **any** of the answers are clearly not business-related (e.g., jokes, nonsensical text, personal opinions, political statements), you MUST return a JSON object with "is_valid": false and an "error_message" specifying which answer was irrelevant and why.
+    3.  If all the answers are business-relevant, you MUST return a JSON with "is_valid": true and populate the "analysis" object with six summaries based on ALL the provided context (including capabilities). For the "roadblocks_summary", synthesize information from risks, culture, and change management.
 
-    **3. Cultural Realignment:**
-    - Answer: {request.cultural_realignment.answer or "Not provided"}
-    - Impact: {request.cultural_realignment.impact or "N/A"}
-
-    **4. Change Management:**
-    - Answer: {request.change_management.answer or "Not provided"}
-    - Impact: {request.change_management.impact or "N/A"}
-
-    **5. Learning and Development:**
-    - Answer: {request.learning_and_development.answer or "Not provided"}
-    - Impact: {request.learning_and_development.impact or "N/A"}
-
-    **6. Capability Analysis:**
-    - Influenced Capabilities: {', '.join(request.capability_info.influenced_capabilities) or "None"}
-    - Owner: {request.capability_info.owner or "Not assigned"}
-    - Enhancing Existing Capabilities Required: {'Yes' if request.capability_info.require_enhancing_capabilities else 'No'}
-    - Enhancement Details: {request.capability_info.enhancement_details or "N/A"}
-    - Adding New Capabilities Required: {'Yes' if request.capability_info.require_new_capabilities else 'No'}
-    - New Capability Details: {request.capability_info.new_capability.model_dump_json(indent=2) if request.capability_info.new_capability else 'N/A'}
+    Your response MUST be ONLY a single, valid JSON object conforming to this schema:
+    {json.dumps(validation_schema, indent=2)}
     """
     
-    user_prompt = f"""
-    Based on the following detailed input about a business goal, generate a comprehensive analysis.
-    
-    {input_data_text}
-
-    Your task is to produce a JSON object containing six summaries. For each summary, provide a concise, bulleted list of the top 3-4 most important points derived from the corresponding input section.
-
-    The JSON object must contain exactly these six keys: 'risks_summary', 'regulatory_compliance_summary', 'roadblocks_summary', 'culture_realignment_summary', 'change_management_summary', 'learning_and_development_summary'.
-
-    The JSON must conform to this schema:
-    {json.dumps(json_schema, indent=2)}
-    """
+    # Send the full request data for context, but the prompt focuses validation on the answers
+    user_prompt = f"Analyze this business goal data:\n{request.model_dump_json(indent=2)}"
 
     raw_response = await _call_openai_for_json(system_prompt, user_prompt)
-    return parsers.json_to_business_goal_response(raw_response)
+    data = json.loads(raw_response)
+
+    # Check the validation flag from the AI
+    if not data.get("is_valid"):
+        return {"error": data.get("error_message", "One or more answers were deemed irrelevant for analysis.")}
+
+    # On success, return the validated Pydantic model from the nested 'analysis' key
+    try:
+        return BusinessGoalResponse(**data.get("analysis", {}))
+    except Exception as e:
+        return {"error": f"Failed to parse the 'analysis' part of the AI response. Details: {e}"}

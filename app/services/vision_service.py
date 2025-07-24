@@ -1,58 +1,60 @@
-# app/services/vision_services.py
-
-
 from openai import AsyncOpenAI
-from ..core.config import settings
-from ..api.models.vision_model import VisionResponse
-import re
 import json
+from ..core.config import settings
+from ..api.models.vision_model import VisionResponse, VisionInput
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
-def _extract_json(text: str) -> dict:
-    match = re.search(r'\{.*\}', text, re.DOTALL)
-    if not match:
-        raise ValueError("No JSON found in vision LLM response.")
-    return json.loads(match.group(0))
-
 async def process_vision(vision_text: str) -> VisionResponse:
     """
-    Calls the OpenAI API to:
-    1. Score the vision statement (1–100)
-    2. Summarize it
-    3. Suggest improvements
-    4. Provide 3 improved alternative versions
+    Analyzes the user's input.
+    - If it's a valid business vision, it scores it and provides recommendations.
+    - If it's irrelevant, it flags it as invalid and provides an error message.
     """
+    # Get the JSON schema from our Pydantic model to guide the AI
+    json_schema = VisionResponse.model_json_schema()
 
-    system_prompt = """
-    You are a seasoned business strategist. Analyze the following business vision statement and provide structured output as valid JSON only with these keys:
+    # The new system prompt with negative prompting logic
+    system_prompt = f"""
+    You are a seasoned business strategist and an expert in evaluating corporate vision statements. Your primary task is to analyze the user's input and respond in a structured JSON format.
 
-    - vision_score: integer (1–100) assessing clarity, ambition, and impact
-    - vision_summary: concise summary (2-3 sentences) of strengths and weaknesses
-    - vision_recommendations: list of actionable suggestions for improvement
-    - vision_alternatives: list of exactly 3 rewritten vision statements that Concise & Bold plus Inspirational & Human-Centric Innovation-Focused & Strategic
+    **CRITICAL INSTRUCTIONS:**
+    1.  **First, determine if the user's input is a plausible business vision statement.** A valid vision statement is a forward-looking declaration of a company's purpose and aspirations.
+    2.  **Invalid inputs include:** simple questions (e.g., 'what is a vision?'), requests for jokes, political statements ('Trump is king'), personal opinions ('I love movies'), or random nonsensical text.
+    3.  **If the input is INVALID:** You MUST return a JSON object where "is_valid" is false and "error_message" explains why the input is not a valid vision statement (e.g., "The provided text is a question, not a vision statement."). Do not populate the other fields.
+    4.  **If the input is VALID:** You MUST return a JSON object where "is_valid" is true and you complete the following analysis:
+        - "vision_score": An integer (1–100) assessing clarity, ambition, and impact.
+        - "vision_summary": A concise 2-3 sentence summary of the vision's strengths and weaknesses.
+        - "vision_recommendations": A list of actionable suggestions for improvement.
+        - "vision_alt": A list of exactly 3 rewritten vision statements that are more Concise, Bold, and Strategic.
 
-    Return output EXACTLY as JSON, with no additional text.
+    **Your response MUST be ONLY a single, valid JSON object that conforms to this schema:**
+    {json.dumps(json_schema, indent=2)}
     """
 
     user_prompt = vision_text
 
-    response = await client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        temperature=0.3,
-        max_tokens=500
-    )
+    try:
+        response = await client.chat.completions.create(
+            model="gpt-4o",
+            response_format={"type": "json_object"}, # Use reliable JSON mode
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.3,
+            max_tokens=800
+        )
 
-    content = response.choices[0].message.content.strip()
-    data = _extract_json(content)
+        content = response.choices[0].message.content.strip()
+        data = json.loads(content)
 
-    return VisionResponse(
-        vision_score=int(data.get("vision_score", 0)),
-        vision_summary=str(data.get("vision_summary", "")).strip(),
-        vision_recommendations=data.get("vision_recommendations", [] if not isinstance(data.get("vision_recommendations"), list) else data.get("vision_recommendations")),
-        vision_alt=data.get("vision_alternatives", [] if not isinstance(data.get("vision_alternatives"), list) else data.get("vision_alternatives"))
-    )
+        # Directly instantiate the Pydantic model. It will validate the structure.
+        return VisionResponse(**data)
+
+    except Exception as e:
+        # Handle cases where the API call itself or parsing fails
+        return VisionResponse(
+            is_valid=False,
+            error_message=f"An unexpected error occurred during AI processing: {str(e)}"
+        )

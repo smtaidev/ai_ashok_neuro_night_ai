@@ -1,90 +1,72 @@
-# app/services/strategic_theme2_service.py
-
 from openai import AsyncOpenAI
 import json
+from typing import Union, Dict
 from app.core.config import settings
-from app.utils import strategic_theme2_parsers as parsers # Using your renamed parser file
-from app.api.models.strategic_theme2_model import * # Using your renamed model file
+from app.api.models.strategic_theme2_model import *
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
-# --- The Single, Definitive Helper Function with Debugging ---
 async def _call_openai_for_json(system_prompt: str, user_prompt: str) -> str:
-    """Helper function to call the OpenAI API in JSON mode and print the response for debugging."""
+    """Helper function to call the OpenAI API in JSON mode."""
     try:
         response = await client.chat.completions.create(
             model="gpt-4o-mini",
             response_format={"type": "json_object"},
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             temperature=0.2
         )
-        raw_response_text = response.choices[0].message.content
-        
-        # This is the crucial debugging line
-        print("--- AI Response Received ---")
-        print(raw_response_text)
-        print("--------------------------")
-
-        return raw_response_text
-        
+        return response.choices[0].message.content
     except Exception as e:
-        # Also print the error if the API call itself fails
-        print(f"!!! OpenAI API Call Failed: {e} !!!")
-        return json.dumps({"error": f"OpenAI API call failed: {e}"})
+        return json.dumps({"is_valid": False, "error_message": f"OpenAI API call failed: {e}"})
 
-# --- Service Functions (No changes needed here) ---
-
-async def generate_gap_detection(request: GapDetectionRequest) -> GapDetectionResponse:
-    system_prompt = "You are a strategic AI advisor. Your response MUST be a single, valid JSON object that conforms to the provided schema. Do not include any text outside the JSON object."
-    json_schema = GapDetectionResponse.model_json_schema()
-    user_prompt = f"""
-    Analyze the company's Vision, SWOT, Challenges, and current Strategic Themes to identify gaps.
-    Context:
-    - Vision: {request.context.vision}
-    - SWOT: {request.context.swot.model_dump_json(indent=2) if request.context.swot else 'Not provided'}
-    - Challenges: {[c.model_dump() for c in request.context.challenges] if request.context.challenges else 'Not provided'}
-    - Current Themes: {[t.model_dump() for t in request.themes]}
-    
-    Generate a JSON object with three keys: 'missing_themes', 'overlapping_themes', and 'unused_elements'.
-    The JSON object must conform to this schema: {json.dumps(json_schema, indent=2)}
-    """
+async def generate_gap_detection(request: GapDetectionRequest) -> Union[GapDetectionResponse, Dict]:
+    validation_schema = {"type": "object", "properties": {
+        "is_valid": {"type": "boolean"}, "error_message": {"type": "string", "description": "Reason for invalid input."},
+        "analysis": GapDetectionResponse.model_json_schema()
+    }}
+    system_prompt = f"""You are a strategic AI advisor. First, validate if the user's input is business-relevant. If not, return a JSON object with "is_valid": false and an "error_message". If valid, return a JSON with "is_valid": true and the populated "analysis" object. Your response must conform to this schema: {json.dumps(validation_schema)}"""
+    user_prompt = f"Context: {request.model_dump_json()}"
     raw_response = await _call_openai_for_json(system_prompt, user_prompt)
-    return parsers.json_to_gap_detection_response(raw_response)
+    data = json.loads(raw_response)
+    if not data.get("is_valid"):
+        return {"error": data.get("error_message", "Input was deemed irrelevant for analysis.")}
+    return GapDetectionResponse(**data.get("analysis", {}))
 
-async def generate_wording_suggestions(request: WordingSuggestionsRequest) -> WordingSuggestionsResponse:
-    system_prompt = "You are a strategic editor. Your response MUST be a single, valid JSON object."
-    json_schema = WordingSuggestionsResponse.model_json_schema()
-    user_prompt = f"""
-    Improve the wording of these strategic themes: {request.themes}
-    Generate a JSON object containing a key "suggestions", a list of objects. Each object must have keys: 'original_name', 'improved_name', 'original_description', 'improved_description', 'rationale'.
-    Conform to this schema: {json.dumps(json_schema, indent=2)}
-    """
+async def generate_wording_suggestions(request: WordingSuggestionsRequest) -> Union[WordingSuggestionsResponse, Dict]:
+    validation_schema = {"type": "object", "properties": {
+        "is_valid": {"type": "boolean"}, "error_message": {"type": "string"},
+        "analysis": WordingSuggestionsResponse.model_json_schema()
+    }}
+    system_prompt = f"""You are a strategic editor. First, validate the input themes. If not business-related, return JSON with "is_valid": false and an "error_message". If valid, return JSON with "is_valid": true and the "analysis" object populated with suggestions. Your response must conform to this schema: {json.dumps(validation_schema)}"""
+    user_prompt = f"Improve the wording of these strategic themes: {request.model_dump_json()}"
     raw_response = await _call_openai_for_json(system_prompt, user_prompt)
-    return parsers.json_to_wording_suggestions_response(raw_response)
+    data = json.loads(raw_response)
+    if not data.get("is_valid"):
+        return {"error": data.get("error_message", "Input themes were deemed irrelevant.")}
+    return WordingSuggestionsResponse(**data.get("analysis", {}))
 
-async def generate_goal_mapping(request: GoalMappingRequest) -> GoalMappingResponse:
-    system_prompt = "You are a strategic planner. Your response MUST be a single, valid JSON object."
-    json_schema = GoalMappingResponse.model_json_schema()
-    user_prompt = f"""
-    For each theme below, suggest 2-3 business goals.
-    Themes: {request.themes}
-    Generate a JSON with a key "mapped_themes", a list of objects. Each object has 'theme_name' and a 'goals' list. Each goal has a 'goal' and a 'goal_type' (Financial/Customer/Operational/Innovation/People).
-    Conform to this schema: {json.dumps(json_schema, indent=2)}
-    """
+async def generate_goal_mapping(request: GoalMappingRequest) -> Union[GoalMappingResponse, Dict]:
+    validation_schema = {"type": "object", "properties": {
+        "is_valid": {"type": "boolean"}, "error_message": {"type": "string"},
+        "analysis": GoalMappingResponse.model_json_schema()
+    }}
+    system_prompt = f"""You are a strategic planner. First, validate the input themes. If not business-related, return JSON with "is_valid": false and an "error_message". If valid, return JSON with "is_valid": true and the "analysis" object populated with mapped themes. Your response must conform to this schema: {json.dumps(validation_schema)}"""
+    user_prompt = f"For each theme below, suggest 2-3 business goals: {request.model_dump_json()}"
     raw_response = await _call_openai_for_json(system_prompt, user_prompt)
-    return parsers.json_to_goal_mapping_response(raw_response)
+    data = json.loads(raw_response)
+    if not data.get("is_valid"):
+        return {"error": data.get("error_message", "Input themes were deemed irrelevant.")}
+    return GoalMappingResponse(**data.get("analysis", {}))
 
-async def generate_benchmarking(request: BenchmarkingRequest) -> BenchmarkingResponse:
-    system_prompt = "You are an industry strategist. Your response MUST be a single, valid JSON object."
-    json_schema = BenchmarkingResponse.model_json_schema()
-    user_prompt = f"""
-    Based on this profile, suggest 3-4 common Strategic Themes for peers.
-    Profile: {request.profile.model_dump()}
-    Generate a JSON object with a key "benchmark_themes", a list of objects. Each object must have 'theme_name', 'description', and 'justification'.
-    Conform to this schema: {json.dumps(json_schema, indent=2)}
-    """
+async def generate_benchmarking(request: BenchmarkingRequest) -> Union[BenchmarkingResponse, Dict]:
+    validation_schema = {"type": "object", "properties": {
+        "is_valid": {"type": "boolean"}, "error_message": {"type": "string"},
+        "analysis": BenchmarkingResponse.model_json_schema()
+    }}
+    system_prompt = f"""You are an industry strategist. First, validate the company profile. If nonsensical, return JSON with "is_valid": false and an "error_message". If valid, return JSON with "is_valid": true and the "analysis" object populated with benchmark themes. Your response must conform to this schema: {json.dumps(validation_schema)}"""
+    user_prompt = f"Based on this profile, suggest 3-4 common Strategic Themes for peers: {request.profile.model_dump()}"
     raw_response = await _call_openai_for_json(system_prompt, user_prompt)
-    return parsers.json_to_benchmarking_response(raw_response)
+    data = json.loads(raw_response)
+    if not data.get("is_valid"):
+        return {"error": data.get("error_message", "Company profile was deemed irrelevant.")}
+    return BenchmarkingResponse(**data.get("analysis", {}))
