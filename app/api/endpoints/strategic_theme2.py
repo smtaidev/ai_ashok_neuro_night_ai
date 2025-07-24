@@ -18,7 +18,7 @@ gap_detection_example = {
 }
 wording_suggestions_example = {"themes": [{"name": "Make Things Better", "description": "Improve our stuff."}]}
 goal_mapping_example = {"themes": [{"name": "Operational Excellence", "description": "Streamline internal processes."}]}
-benchmarking_example = {"profile": {"industry": "B2B SaaS", "size": "50-200 Employees", "businessModel": "Subscription"}}
+benchmarking_example = {"profile": {"industry": "B2B SaaS", "size": "50-200 Employees", "businessModel": "Subscription", "region": "North America"}}
 
 
 
