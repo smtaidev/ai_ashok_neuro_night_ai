@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: clarhet-ai-api
     ports:
-      - "8019:8019"
+      - "8026:8026"
       - "8501:8501"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
@@ -22,7 +22,7 @@ services:
     networks:
       - clarhet-network
     command: >
-      sh -c "cd /app && uvicorn main:app --host 0.0.0.0 --port 8019 &
+      sh -c "cd /app && uvicorn main:app --host 0.0.0.0 --port 8026 &
              cd /app && streamlit run frontend.py --server.port 8501 --server.address 0.0.0.0 --server.headless true"
 
   # Optional: Add a reverse proxy (nginx)

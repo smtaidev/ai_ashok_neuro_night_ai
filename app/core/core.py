@@ -9,7 +9,7 @@ load_dotenv()
 class AIService:
     def __init__(self):
         self.client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
-        self.model = "gpt-4o"  # or "gpt-4" if you prefer
+        self.model = "gpt-4o-mini"  # or "gpt-4" if you prefer
     
     async def generate_response(self, prompt: str) -> str:
         try:

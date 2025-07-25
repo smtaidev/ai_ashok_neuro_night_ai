@@ -31,11 +31,11 @@ RUN useradd --create-home --shell /bin/bash app && \
 USER app
 
 # Expose ports
-EXPOSE 8019 8501
+EXPOSE 8026 8501
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8019/ || exit 1
+    CMD curl -f http://localhost:8026/ || exit 1
 
 # Default command (will be overridden by docker-compose)
-CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8019 & streamlit run frontend.py --server.port 8501 --server.address 0.0.0.0 --server.headless true"]
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port 8026 & streamlit run frontend.py --server.port 8501 --server.address 0.0.0.0 --server.headless true"]
