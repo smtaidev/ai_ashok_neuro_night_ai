@@ -10,23 +10,6 @@ st.title("🧠 Clarhet AI: Test Site")
 
 BASE_URL = "http://127.0.0.1:8026/api"
 
-def test_connection():
-    try:
-        response = requests.get(f"{BASE_URL}/", timeout=5)
-        return response.status_code == 200, response.json()
-    except Exception as e:
-        return False, str(e)
-
-# Add connection test in sidebar
-with st.sidebar:
-    if st.button("🔍 Test Backend Connection"):
-        success, result = test_connection()
-        if success:
-            st.success("✅ Backend Connected!")
-            st.json(result)
-        else:
-            st.error(f"❌ Connection Failed: {result}")
-
 # --- Initialize Session State ---
 trend_areas = [
     "customer_insights", "competitor_landscape", "technological_advances",
@@ -454,7 +437,7 @@ def render_vision_section():
     
     if st.session_state.run_analysis and st.session_state.vision_input.strip():
         payload = {"vision_statement": st.session_state.vision_input.strip()}
-        st.write("Payload sent to API:", payload)
+        # st.write("Payload sent to API:", payload)
         
         try:
             resp = requests.post(f"{BASE_URL}/blueprint/vision", json=payload)
@@ -590,7 +573,7 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
             }
         }
         
-        st.write("Payload sent to APIs:", payload)
+        # st.write("Payload sent to APIs:", payload)
         
         endpoints = [
             "strategic-theme2/gap-detection",
@@ -697,7 +680,6 @@ def render_capabilities_section():
             return
         
         payload = {"capability": differentiating_caps}
-        st.write("Payload sent to API:", payload)
         
         try:
             resp = requests.post(f"{BASE_URL}/capabilities/analyze", json=payload)
@@ -1008,7 +990,7 @@ def render_business_goals_section():
             return
         
         payload = valid_goals[0]  # Assuming one goal for simplicity; adjust if multiple goals needed
-        st.write("Payload sent to API:", payload)
+        # st.write("Payload sent to API:", payload)
         
         try:
             resp = requests.post(f"{BASE_URL}/business-goals/recommendations", json=payload)
