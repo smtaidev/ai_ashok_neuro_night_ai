@@ -14,7 +14,10 @@ router = APIRouter()
 async def analyze_differentiation(
     # The example in the Body is now updated to remove the 'type' field
     request: DifferentiationRequest = Body(..., example={
-        "capability": "I am a Python developer specializing in FastAPI."
+        "capabilities": [
+            "I am a Python developer specializing in FastAPI.",
+            "I create scalable web applications with a focus on performance.",
+        ]
     })
 ):
     """

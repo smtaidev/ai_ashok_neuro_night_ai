@@ -682,7 +682,7 @@ def render_capabilities_section():
         payload = {"capability": differentiating_caps}
         
         try:
-            resp = requests.post(f"{BASE_URL}/capabilities/analyze", json=payload)
+            resp = requests.post(f"{BASE_URL}/differentiation/analyze", json=payload)
             resp.raise_for_status()
             response_data = resp.json()
             
@@ -993,7 +993,7 @@ def render_business_goals_section():
         # st.write("Payload sent to API:", payload)
         
         try:
-            resp = requests.post(f"{BASE_URL}/business-goals/recommendations", json=payload)
+            resp = requests.post(f"{BASE_URL}/business-goal/analyze", json=payload)
             resp.raise_for_status()
             response_data = resp.json()
             
