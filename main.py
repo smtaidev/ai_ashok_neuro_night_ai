@@ -1,6 +1,7 @@
 # main.py
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation, business_goal, chat_api
 
 app = FastAPI(
@@ -8,6 +9,16 @@ app = FastAPI(
     description="API for strategic business analysis, including Trends and SWOT.",
     version="1.2.0"
 )
+
+# CORS configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
 app.include_router(
     trend_summary.router, 
     prefix="/api/trends"
