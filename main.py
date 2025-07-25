@@ -1,7 +1,7 @@
 # main.py
 
 from fastapi import FastAPI
-from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation, business_goal
+from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation, business_goal, chat_api
 
 app = FastAPI(
     title="Clarhet AI API",
@@ -53,6 +53,12 @@ app.include_router(
     business_goal.router,
     prefix="/api/business-goal",
     tags=["Business Goals"]
+)
+
+app.include_router(
+    chat_api.router,
+    prefix="/api/chatbot",
+    tags=["Chatbot"]
 )
 
 @app.get("/", tags=["Root"])

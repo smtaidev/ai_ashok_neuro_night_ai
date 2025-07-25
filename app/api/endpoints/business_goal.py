@@ -2,9 +2,9 @@ from fastapi import APIRouter, Body, HTTPException
 from typing import Dict
 from app.services import business_goal_service
 from app.api.models.business_goal_model import BusinessGoalRequest, BusinessGoalResponse
-
+ 
 router = APIRouter()
-
+ 
 @router.post(
     "/analyze",
     response_model=BusinessGoalResponse,
@@ -32,14 +32,6 @@ async def create_business_goal_analysis(
       "learning_and_development": {
         "answer": "The sales team needs training on the new CRM and advanced data analysis techniques.",
         "impact": "Low"
-      },
-      "capability_info": {
-        "influenced_capabilities": ["Sales Process", "Customer Data Management"],
-        "owner": "John Doe",
-        "require_enhancing_capabilities": True,
-        "enhancement_details": "We are upgrading our CRM to Salesforce Lightning to improve lead tracking.",
-        "require_new_capabilities": False,
-        "new_capability": None
       }
     })
 ):
@@ -49,10 +41,10 @@ async def create_business_goal_analysis(
     """
     # The service returns either the model or an error dict
     response = await business_goal_service.analyze_business_goal(request)
-
+ 
     # Check the type of the response to determine the outcome
     if isinstance(response, Dict) and "error" in response:
         raise HTTPException(status_code=400, detail=response["error"])
-
+ 
     # If we get here, the response is a valid BusinessGoalResponse model
     return response
