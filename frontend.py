@@ -8,7 +8,7 @@ from datetime import datetime
 st.set_page_config(page_title="Clarhet AI - Challenge Analyzer", layout="wide")
 st.title("🧠 Clarhet AI: Test Site")
 
-BASE_URL = "http://172.252.13.69:8019/api"
+BASE_URL = "http://172.252.13.69:8019"
 
 # --- Initialize Session State ---
 trend_areas = [
