@@ -12,19 +12,19 @@ class DifferentiationRequest(BaseModel):
         min_length=1
     )
  
-    @field_validator('capabilities')
-    def validate_each_capability_word_count(cls, v: List[str]) -> List[str]:
-        """
-        Validates each capability string in the list to ensure it is 10 words or fewer.
-        """
-        for capability_string in v:
-            word_count = len(capability_string.split())
-            if word_count > 10:
-                raise ValueError(
-                    f"Each capability must be 10 words or fewer. "
-                    f"The following item exceeded the limit ({word_count} words): '{capability_string}'"
-                )
-        return v
+    # @field_validator('capabilities')
+    # def validate_each_capability_word_count(cls, v: List[str]) -> List[str]:
+    #     """
+    #     Validates each capability string in the list to ensure it is 10 words or fewer.
+    #     """
+    #     for capability_string in v:
+    #         word_count = len(capability_string.split())
+    #         if word_count > 10:
+    #             raise ValueError(
+    #                 f"Each capability must be 10 words or fewer. "
+    #                 f"The following item exceeded the limit ({word_count} words): '{capability_string}'"
+    #             )
+    #     return v
  
 # --- Output Model (Unchanged) ---
 class DifferentiationResponse(BaseModel):

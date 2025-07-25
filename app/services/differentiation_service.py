@@ -45,8 +45,8 @@ async def generate_differentiation_analysis(request: DifferentiationRequest) -> 
     3.  If the input is VALID, you MUST return a JSON object with "is_valid": true and populate the "analysis" object with a 'summary' and 3 'differentiating_factors'.
  
     Your response MUST be ONLY a single, valid JSON object conforming to this schema:
-    {json.dumps(validation_schema, indent=2)}
     """
+   #    {json.dumps(validation_schema, indent=2)}
    
     user_prompt = f'Analyze this capability: "{request.capabilities}"'
    

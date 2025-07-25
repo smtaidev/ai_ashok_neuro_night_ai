@@ -8,7 +8,7 @@ from datetime import datetime
 st.set_page_config(page_title="Clarhet AI - Challenge Analyzer", layout="wide")
 st.title("🧠 Clarhet AI: Test Site")
 
-BASE_URL = "http://127.0.0.1:8026/api"
+BASE_URL = "http://127.0.0.1:8000/api"
 
 # --- Initialize Session State ---
 trend_areas = [
@@ -674,13 +674,14 @@ def render_capabilities_section():
 
     if st.button("💡 Differentiating AI Recommendations"):
         differentiating_caps = [cap["capability"].strip() for cap in st.session_state.capabilities if cap["capability"].strip() and cap["type"] == "Differentiating"]
-        
+
         if not differentiating_caps:
             st.warning("Please enter at least one Differentiating capability.")
             return
         
-        payload = {"capability": differentiating_caps}
-        
+        payload = {"capabilities": differentiating_caps}
+        # st.write("Payload sent to API:", payload)
+
         try:
             resp = requests.post(f"{BASE_URL}/differentiation/analyze", json=payload)
             resp.raise_for_status()
