@@ -10,6 +10,23 @@ st.title("🧠 Clarhet AI: Test Site")
 
 BASE_URL = "http://172.252.13.69:8026/api"
 
+def test_connection():
+    try:
+        response = requests.get(f"{BASE_URL}/", timeout=5)
+        return response.status_code == 200, response.json()
+    except Exception as e:
+        return False, str(e)
+
+# Add connection test in sidebar
+with st.sidebar:
+    if st.button("🔍 Test Backend Connection"):
+        success, result = test_connection()
+        if success:
+            st.success("✅ Backend Connected!")
+            st.json(result)
+        else:
+            st.error(f"❌ Connection Failed: {result}")
+
 # --- Initialize Session State ---
 trend_areas = [
     "customer_insights", "competitor_landscape", "technological_advances",
