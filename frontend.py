@@ -8,7 +8,7 @@ from datetime import datetime
 st.set_page_config(page_title="Clarhet AI - Challenge Analyzer", layout="wide")
 st.title("🧠 Clarhet AI: Test Site")
 
-BASE_URL = "http://172.252.13.69:8026/api"
+BASE_URL = "http://127.0.0.1:8026/api"
 
 def test_connection():
     try:
