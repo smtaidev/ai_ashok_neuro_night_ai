@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 
 # Request validation
 class VisionInput(BaseModel):
@@ -9,9 +9,10 @@ class VisionInput(BaseModel):
 # Response validation (Reverted to original clean structure)
 class VisionResponse(BaseModel):
     """
-    Response model for a valid, processed vision analysis.
+    Response model for a valid or invalid vision analysis.
     """
-    vision_score: int = Field(..., ge=0, le=100)
-    vision_summary: str
-    vision_recommendations: List[str]
-    vision_alt: List[str] = Field(..., min_length=3, max_length=3)
+    vision_score: Optional[int] = Field(None, ge=0, le=100)
+    vision_summary: Optional[str] = None
+    vision_recommendations: Optional[List[str]] = None
+    vision_alt: Optional[List[str]] = Field(default=None, min_length=3, max_length=3)
+    error: Optional[str] = None  # ✅ Add this for error handling

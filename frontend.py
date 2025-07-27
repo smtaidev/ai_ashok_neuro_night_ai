@@ -8,7 +8,7 @@ from datetime import datetime
 st.set_page_config(page_title="Clarhet AI - Challenge Analyzer", layout="wide")
 st.title("🧠 Clarhet AI: Test Site")
 
-BASE_URL = "http://127.0.0.1:8026/api"
+BASE_URL = "http://127.0.0.1:8000/api"
 
 # --- Initialize Session State ---
 trend_areas = [
@@ -117,49 +117,50 @@ def render_trend_section():
                     })
             trends_payload[area] = valid_entries
         
-        try:
-            resp = requests.post(f"{BASE_URL}/trends/analyze", json=trends_payload)
-            resp.raise_for_status()
-            response_data = resp.json()
-            st.subheader("📋 Trend Summary")
-            
-            if "summary" in response_data:
-                st.markdown("### 🌟 Key Opportunities")
-                st.markdown(response_data["summary"]["key_opportunities"] if "key_opportunities" in response_data["summary"] else "N/A")
-                st.markdown("### 💪 Strengths")
-                st.markdown(response_data["summary"]["strengths"] if "strengths" in response_data["summary"] else "N/A")
-                st.markdown("### ⚠️ Significant Risks")
-                st.markdown(response_data["summary"]["significant_risks"] if "significant_risks" in response_data["summary"] else "N/A")
-                st.markdown("### 🏔 Challenges")
-                st.markdown(response_data["summary"]["challenges"] if "challenges" in response_data["summary"] else "N/A")
-                st.markdown("### 💡 Strategic Recommendations")
-                st.markdown(response_data["summary"]["strategic_recommendations"] if "strategic_recommendations" in response_data["summary"] else "N/A")
-                st.markdown("### ❌ Irrelevant Answers")
-                for i, answer in enumerate(response_data["summary"].get("irrelevant_answers", [])):
-                    st.markdown(f"{i+1}. {answer}")
+        with st.spinner("🤖 AI is analyzing market trends and patterns... This may take a moment."):
+            try:
+                resp = requests.post(f"{BASE_URL}/trends/analyze", json=trends_payload)
+                resp.raise_for_status()
+                response_data = resp.json()
+                st.subheader("📋 Trend Summary")
                 
-                if "top_trends" in response_data and response_data["top_trends"]:
-                    st.markdown("### 📈 Top Trends")
-                    for trend in response_data["top_trends"]:
-                        st.markdown(f"- {trend}")
-                
-                if "radar_executive_summary" in response_data and response_data["radar_executive_summary"]:
-                    st.markdown("### 🔮 Radar Executive Summary")
-                    for summary in response_data["radar_executive_summary"]:
-                        st.markdown(f"- {summary}")
-                
-                if "radar_recommendation" in response_data and response_data["radar_recommendation"]:
-                    st.markdown("### 🛠 Radar Recommendations")
-                    for rec in response_data["radar_recommendation"]:
-                        st.markdown(f"- {rec}")
-            else:
-                st.warning("No summary generated.")
-                
-        except requests.exceptions.HTTPError as e:
-            error_response = e.response.json() if e.response else "No response details"
-            st.error(f"API Error: {e}\nDetails: {error_response}")
-        except Exception as e:
-            st.error(f"Unexpected Error: {e}")
+                if "summary" in response_data:
+                    st.markdown("### 🌟 Key Opportunities")
+                    st.markdown(response_data["summary"]["key_opportunities"] if "key_opportunities" in response_data["summary"] else "N/A")
+                    st.markdown("### 💪 Strengths")
+                    st.markdown(response_data["summary"]["strengths"] if "strengths" in response_data["summary"] else "N/A")
+                    st.markdown("### ⚠️ Significant Risks")
+                    st.markdown(response_data["summary"]["significant_risks"] if "significant_risks" in response_data["summary"] else "N/A")
+                    st.markdown("### 🏔 Challenges")
+                    st.markdown(response_data["summary"]["challenges"] if "challenges" in response_data["summary"] else "N/A")
+                    st.markdown("### 💡 Strategic Recommendations")
+                    st.markdown(response_data["summary"]["strategic_recommendations"] if "strategic_recommendations" in response_data["summary"] else "N/A")
+                    st.markdown("### ❌ Irrelevant Answers")
+                    for i, answer in enumerate(response_data["summary"].get("irrelevant_answers", [])):
+                        st.markdown(f"{i+1}. {answer}")
+                    
+                    if "top_trends" in response_data and response_data["top_trends"]:
+                        st.markdown("### 📈 Top Trends")
+                        for trend in response_data["top_trends"]:
+                            st.markdown(f"- {trend}")
+                    
+                    if "radar_executive_summary" in response_data and response_data["radar_executive_summary"]:
+                        st.markdown("### 🔮 Radar Executive Summary")
+                        for summary in response_data["radar_executive_summary"]:
+                            st.markdown(f"- {summary}")
+                    
+                    if "radar_recommendation" in response_data and response_data["radar_recommendation"]:
+                        st.markdown("### 🛠 Radar Recommendations")
+                        for rec in response_data["radar_recommendation"]:
+                            st.markdown(f"- {rec}")
+                else:
+                    st.warning("No summary generated.")
+                    
+            except requests.exceptions.HTTPError as e:
+                error_response = e.response.json() if e.response else "No response details"
+                st.error(f"API Error: {e}\nDetails: {error_response}")
+            except Exception as e:
+                st.error(f"Unexpected Error: {e}")
 
     trends_output = {}
     for area in trend_areas:
@@ -225,42 +226,43 @@ def render_swot_section():
 
     if st.button("📊 Analyze SWOT"):
         if any(swot_payload.values()):
-            try:
-                resp = requests.post(f"{BASE_URL}/swot/analysis", json=swot_payload)
-                resp.raise_for_status()
-                response_data = resp.json()
+            with st.spinner("🧠 AI is conducting strategic SWOT analysis... Evaluating organizational position."):
+                try:
+                    resp = requests.post(f"{BASE_URL}/swot/analysis", json=swot_payload)
+                    resp.raise_for_status()
+                    response_data = resp.json()
 
-                names = ['Strengths', 'Weaknesses', 'Opportunities', 'Threats']
-                percentages = [
-                    int(response_data['scores']['strengths_percentage']),
-                    int(response_data['scores']['weaknesses_percentage']),
-                    int(response_data['scores']['opportunities_percentage']),
-                    int(response_data['scores']['threats_percentage'])
-                ]
+                    names = ['Strengths', 'Weaknesses', 'Opportunities', 'Threats']
+                    percentages = [
+                        int(response_data['scores']['strengths_percentage']),
+                        int(response_data['scores']['weaknesses_percentage']),
+                        int(response_data['scores']['opportunities_percentage']),
+                        int(response_data['scores']['threats_percentage'])
+                    ]
 
-                st.subheader("SWOT Scores")
-                df = pd.DataFrame({
-                    'Category': names,
-                    'Percentage': percentages
-                })
-                st.bar_chart(df.set_index('Category')['Percentage'])
+                    st.subheader("SWOT Scores")
+                    df = pd.DataFrame({
+                        'Category': names,
+                        'Percentage': percentages
+                    })
+                    st.bar_chart(df.set_index('Category')['Percentage'])
 
-                with st.container():
-                    st.markdown("### SWOT Recommendations")
-                    st.markdown("#### Strengths")
-                    st.write(response_data['recommendations']['strengths_recommendation'])
-                    st.markdown("#### Weaknesses")
-                    st.write(response_data['recommendations']['weaknesses_recommendation'])
-                    st.markdown("#### Opportunities")
-                    st.write(response_data['recommendations']['opportunities_recommendation'])
-                    st.markdown("#### Threats")
-                    st.write(response_data['recommendations']['threats_recommendation'])
-                
-            except requests.exceptions.HTTPError as e:
-                error_response = e.response.json() if e.response else "No response details"
-                st.error(f"API Error: {e}\nDetails: {error_response}")
-            except Exception as e:
-                st.error(f"Unexpected Error: {e}")
+                    with st.container():
+                        st.markdown("### SWOT Recommendations")
+                        st.markdown("#### Strengths")
+                        st.write(response_data['recommendations']['strengths_recommendation'])
+                        st.markdown("#### Weaknesses")
+                        st.write(response_data['recommendations']['weaknesses_recommendation'])
+                        st.markdown("#### Opportunities")
+                        st.write(response_data['recommendations']['opportunities_recommendation'])
+                        st.markdown("#### Threats")
+                        st.write(response_data['recommendations']['threats_recommendation'])
+                    
+                except requests.exceptions.HTTPError as e:
+                    error_response = e.response.json() if e.response else "No response details"
+                    st.error(f"API Error: {e}\nDetails: {error_response}")
+                except Exception as e:
+                    st.error(f"Unexpected Error: {e}")
         else:
             st.warning("Please enter at least one item in any SWOT category.")
 
@@ -342,22 +344,23 @@ def render_challenge_section(swot_input, trend_input):
                             "trends": trend_input
                         }
                         
-                        try:
-                            resp = requests.post(f"{BASE_URL}/challenge/evaluate", json=payload)
-                            resp.raise_for_status()
-                            response_data = resp.json()
-                            ch["risk_score"] = response_data.get("risk_score", "N/A")
-                            
-                            st.success(f"✅ Risk Score: {ch['risk_score']}")
-                            if "evaluation" in response_data:
-                                st.write("Evaluation Details:")
-                                st.write(response_data["evaluation"])
+                        with st.spinner("🎯 AI is evaluating challenge complexity and risk factors..."):
+                            try:
+                                resp = requests.post(f"{BASE_URL}/challenge/evaluate", json=payload)
+                                resp.raise_for_status()
+                                response_data = resp.json()
+                                ch["risk_score"] = response_data.get("risk_score", "N/A")
                                 
-                        except requests.exceptions.HTTPError as e:
-                            error_response = e.response.json() if e.response else "No response details"
-                            st.error(f"API Error: {e}\nDetails: {error_response}")
-                        except Exception as e:
-                            st.error(f"Unexpected Error: {e}")
+                                st.success(f"✅ Risk Score: {ch['risk_score']}")
+                                if "evaluation" in response_data:
+                                    st.write("Evaluation Details:")
+                                    st.write(response_data["evaluation"])
+                                    
+                            except requests.exceptions.HTTPError as e:
+                                error_response = e.response.json() if e.response else "No response details"
+                                st.error(f"API Error: {e}\nDetails: {error_response}")
+                            except Exception as e:
+                                st.error(f"Unexpected Error: {e}")
                     else:
                         st.warning("Please fill in at least the title and description.")
             
@@ -385,38 +388,39 @@ def render_challenge_section(swot_input, trend_input):
         ]
         
         if valid_challenges:
-            try:
-                payload = {
-                    "challenges": valid_challenges,
-                    "swot": swot_input,
-                    "trends": trend_input
-                }
-                resp = requests.post(f"{BASE_URL}/challenge/recommendations", json=payload)
-                resp.raise_for_status()
-                response_data = resp.json()
-                st.subheader("📋 Challenge Recommendations")
-                
-                with st.container():
-                    if "recommendations" in response_data:
-                        st.markdown("### Recommendations")
-                        st.write(response_data["recommendations"])
-                    elif "analysis" in response_data:
-                        st.markdown("### Analysis")
-                        st.write(response_data["analysis"])
-                    else:
-                        for key, value in response_data.items():
-                            if isinstance(value, str) and value.strip():
-                                st.markdown(f"### {key.replace('_', ' ').title()}")
-                                st.write(value)
-                
-                if not response_data:
-                    st.warning("No recommendations generated.")
+            with st.spinner("💭 AI is generating strategic recommendations based on challenge analysis..."):
+                try:
+                    payload = {
+                        "challenges": valid_challenges,
+                        "swot": swot_input,
+                        "trends": trend_input
+                    }
+                    resp = requests.post(f"{BASE_URL}/challenge/recommendations", json=payload)
+                    resp.raise_for_status()
+                    response_data = resp.json()
+                    st.subheader("📋 Challenge Recommendations")
                     
-            except requests.exceptions.HTTPError as e:
-                error_response = e.response.json() if e.response else "No response details"
-                st.error(f"API Error: {e}\nDetails: {error_response}")
-            except Exception as e:
-                st.error(f"Unexpected Error: {e}")
+                    with st.container():
+                        if "recommendations" in response_data:
+                            st.markdown("### Recommendations")
+                            st.write(response_data["recommendations"])
+                        elif "analysis" in response_data:
+                            st.markdown("### Analysis")
+                            st.write(response_data["analysis"])
+                        else:
+                            for key, value in response_data.items():
+                                if isinstance(value, str) and value.strip():
+                                    st.markdown(f"### {key.replace('_', ' ').title()}")
+                                    st.write(value)
+                    
+                    if not response_data:
+                        st.warning("No recommendations generated.")
+                        
+                except requests.exceptions.HTTPError as e:
+                    error_response = e.response.json() if e.response else "No response details"
+                    st.error(f"API Error: {e}\nDetails: {error_response}")
+                except Exception as e:
+                    st.error(f"Unexpected Error: {e}")
         else:
             st.warning("Please evaluate at least one challenge with title and description to get recommendations.")
 
@@ -437,66 +441,65 @@ def render_vision_section():
     
     if st.session_state.run_analysis and st.session_state.vision_input.strip():
         payload = {"vision_statement": st.session_state.vision_input.strip()}
-        # st.write("Payload sent to API:", payload)
-        
-        try:
-            resp = requests.post(f"{BASE_URL}/blueprint/vision", json=payload)
-            resp.raise_for_status()
-            response_data = resp.json()
-            
-            st.session_state.vision_response = response_data
-            
-            st.subheader("📊 Vision Score")
-            fig = go.Figure(go.Indicator(
-                mode="gauge+number",
-                value=response_data.get("vision_score", 0),
-                domain={'x': [0, 1], 'y': [0, 1]},
-                title={'text': "Vision Score"},
-                gauge={
-                    'axis': {'range': [0, 100]},
-                    'bar': {'color': "#00cc96"},
-                    'steps': [
-                        {'range': [0, 33], 'color': "#ff6961"},
-                        {'range': [33, 66], 'color': "#ffb347"},
-                        {'range': [66, 100], 'color': "#77dd77"}
-                    ],
-                    'threshold': {
-                        'line': {'color': "black", 'width': 4},
-                        'thickness': 0.75,
-                        'value': response_data.get("vision_score", 0)
+
+        with st.spinner("🔮 AI is analyzing vision clarity, impact, and strategic alignment..."):
+            try:
+                resp = requests.post(f"{BASE_URL}/blueprint/vision", json=payload)
+                resp.raise_for_status()
+                response_data = resp.json()
+
+                # ✅ Check for error key and handle it gracefully
+
+                if response_data["error"] is not None:
+                    st.warning(f"{response_data['error']}")
+                    st.session_state.run_analysis = False
+                    return  # Exit early
+
+                st.session_state.vision_response = response_data
+
+                st.subheader("📊 Vision Score")
+                fig = go.Figure(go.Indicator(
+                    mode="gauge+number",
+                    value=response_data.get("vision_score", 0),
+                    domain={'x': [0, 1], 'y': [0, 1]},
+                    title={'text': "Vision Score"},
+                    gauge={
+                        'axis': {'range': [0, 100]},
+                        'bar': {'color': "#00cc96"},
+                        'threshold': {
+                            'line': {'color': "black", 'width': 10},
+                            'thickness': 0.75,
+                            'value': response_data.get("vision_score", 0)
+                        }
                     }
-                }
-            ))
-            st.plotly_chart(fig, use_container_width=True)
-            
-            st.subheader("📝 Vision Summary")
-            st.write(response_data.get("vision_summary", "N/A"))
-            
-            st.subheader("💡 Vision Recommendations")
-            for rec in response_data.get("vision_recommendations", []):
-                st.write(f"- {rec}")
-            
-            st.subheader("🔄 Alternative Visions")
-            cols = st.columns(3)
-            for i, alt_vision in enumerate(response_data.get("vision_alt", [])):
-                with cols[i]:
-                    if st.button(alt_vision, key=f"alt_vision_{i}", help="Click to select this vision"):
-                        st.session_state.vision_input = alt_vision
-                        st.session_state.selected_vision = alt_vision
-                        st.session_state.run_analysis = True
-                        if "vision_input" in st.session_state:
-                            st.session_state["vision_input"] = alt_vision
-                        st.rerun()
-            
-        except requests.exceptions.HTTPError as e:
-            error_response = e.response.json() if e.response else "No response details"
-            st.error(f"API Error: {e}\nDetails: {error_response}")
-            st.session_state.run_analysis = False
-        except Exception as e:
-            st.error(f"Unexpected Error: {e}")
-            st.session_state.run_analysis = False
-        finally:
-            st.session_state.run_analysis = False
+                ))
+                st.plotly_chart(fig, use_container_width=True)
+
+                st.subheader("📝 Vision Summary")
+                st.write(response_data.get("vision_summary", "N/A"))
+
+                st.subheader("💡 Vision Recommendations")
+                for rec in response_data.get("vision_recommendations", []):
+                    st.write(f"- {rec}")
+
+                st.subheader("🔄 Alternative Visions")
+                cols = st.columns(3)
+                for i, alt_vision in enumerate(response_data.get("vision_alt", [])):
+                    with cols[i]:
+                        if st.button(alt_vision, key=f"alt_vision_{i}", help="Click to select this vision"):
+                            st.session_state.vision_input = alt_vision
+                            st.session_state.selected_vision = alt_vision
+                            st.session_state.run_analysis = True
+                            st.rerun()
+
+            except requests.exceptions.HTTPError as e:
+                st.error(f"API Error: {e}")
+                st.session_state.run_analysis = False
+            except Exception as e:
+                st.error(f"Unexpected Error: {e}")
+                st.session_state.run_analysis = False
+            finally:
+                st.session_state.run_analysis = False
     elif st.session_state.run_analysis:
         st.warning("Please enter a valid vision statement.")
         st.session_state.run_analysis = False
@@ -504,7 +507,7 @@ def render_vision_section():
 # --- Render Strategic Theme Input ---
 def render_strategic_theme_section(vision_input, swot_input, challenges_input):
     st.header("🎯 Strategic Themes")
-    
+
     if st.button("➕ Add New Strategic Theme"):
         st.session_state.strategic_themes.append({"name": "", "description": ""})
         st.rerun()
@@ -512,23 +515,16 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
     for i, theme in enumerate(st.session_state.strategic_themes):
         with st.expander(f"Strategic Theme #{i+1}", expanded=True):
             col1, col2 = st.columns([3, 1])
-            
             with col1:
                 theme["name"] = st.text_input(
-                    "Title",
-                    value=theme.get("name", ""),
-                    key=f"theme_name_{i}",
+                    "Title", value=theme.get("name", ""), key=f"theme_name_{i}",
                     placeholder="Enter strategic theme title"
                 )
-                
                 theme["description"] = st.text_area(
-                    "Description",
-                    value=theme.get("description", ""),
-                    key=f"theme_desc_{i}",
-                    height=100,
+                    "Description", value=theme.get("description", ""),
+                    key=f"theme_desc_{i}", height=100,
                     placeholder="Enter detailed description of the strategic theme"
                 )
-            
             with col2:
                 if len(st.session_state.strategic_themes) > 1:
                     if st.button("❌ Remove", key=f"remove_theme_{i}"):
@@ -541,11 +537,11 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
             for theme in st.session_state.strategic_themes
             if theme["name"].strip() and theme["description"].strip()
         ]
-        
+
         if not valid_themes:
             st.warning("Please enter at least one valid strategic theme with title and description.")
             return
-        
+
         valid_challenges = [
             {
                 "title": ch.get("title", "").strip(),
@@ -558,7 +554,7 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
             for ch in challenges_input
             if ch.get("title", "").strip() and ch.get("description", "").strip() and ch.get("risk_score") is not None
         ]
-        
+
         payload = {
             "themes": valid_themes,
             "context": {
@@ -572,71 +568,67 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
                 "challenges": valid_challenges
             }
         }
-        
-        # st.write("Payload sent to APIs:", payload)
-        
-        endpoints = [
-            "strategic-theme2/gap-detection",
-            "strategic-theme2/wording-suggestions",
-            "strategic-theme2/goal-mapping"
-        ]
-        
-        for endpoint in endpoints:
+
+        with st.spinner("🎯 AI is conducting strategic theme analysis and identifying gaps..."):
             try:
-                resp = requests.post(f"{BASE_URL}/{endpoint}", json=payload)
+                resp = requests.post(f"{BASE_URL}/strategic-theme2/combined-analysis", json=payload)
                 resp.raise_for_status()
                 response_data = resp.json()
-                
-                st.subheader(f"{endpoint.split('/')[-1].replace('-', ' ').title()}")
-                with st.container():
-                    if response_data.get("error"):
-                        st.error(f"API Error: {response_data['error']}")
-                        continue
+
+                if response_data.get("error"):
+                    st.warning(f"⚠️ {response_data['error']}")
+                    return
+
+                # GAP DETECTION
+                gap = response_data.get("gap_detection", {})
+                if gap:
+                    st.subheader("🕳️ Gap Detection")
+                    st.markdown("#### Missing Themes")
+                    st.warning(gap.get("missing_themes", "✅ None") or "✅ None")
                     
-                    if endpoint.endswith("gap-detection"):
-                        st.markdown("#### Missing Themes")
-                        missing = response_data.get("missing_themes", "None")
-                        if missing != "None":
-                            st.warning(f"🚨 {missing}")
-                        else:
-                            st.write("✅ None")
-                            
-                        st.markdown("#### Overlapping Themes")
-                        st.write(response_data.get("overlapping_themes", "None"))
-                            
-                        st.markdown("#### Unused Elements")
-                        unused = response_data.get("unused_elements", "None")
-                        if unused != "None":
-                            st.warning(f"⚠️ {unused}")
-                        else:
-                            st.write("✅ None")
+                    st.markdown("#### Overlapping Themes")
+                    st.write(gap.get("overlapping_themes", "✅ None"))
                     
-                    elif endpoint.endswith("wording-suggestions"):
-                        for suggestion in response_data.get("suggestions", []):
-                            with st.container():
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    st.write(f"Original Name: {suggestion.get('original_name', 'N/A')}")
-                                    st.write(f"Original Description: {suggestion.get('original_description', 'N/A')}")
-                                with col2:
-                                    st.write(f"Improved Name: {suggestion.get('improved_name', 'N/A')}")
-                                    st.write(f"Improved Description: {suggestion.get('improved_description', 'N/A')}")
-                                st.write(f"Rationale: {suggestion.get('rationale', 'N/A')}")
-                    
-                    elif endpoint.endswith("goal-mapping"):
-                        for theme in response_data.get("mapped_themes", []):
-                            with st.container():
-                                st.write(f"Theme: {theme.get('theme_name', 'N/A')}")
-                                for goal in theme.get("goals", []):
-                                    st.write(f"- {goal.get('goal', 'N/A')} ({goal.get('goal_type', 'Unknown')})")
-                    
+                    st.markdown("#### Unused Elements")
+                    st.warning(gap.get("unused_elements", "✅ None") or "✅ None")
+
+                # WORDING SUGGESTIONS
+                wording = response_data.get("wording_suggestions", {})
+                suggestions = wording.get("suggestions", [])
+                if suggestions:
+                    st.subheader("📝 Wording Suggestions")
+                    for suggestion in suggestions:
+                        with st.container():
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.write(f"**Original Name:** {suggestion.get('original_name', 'N/A')}")
+                                st.write(f"**Original Description:** {suggestion.get('original_description', 'N/A')}")
+                            with col2:
+                                st.write(f"**Improved Name:** {suggestion.get('improved_name', 'N/A')}")
+                                st.write(f"**Improved Description:** {suggestion.get('improved_description', 'N/A')}")
+                            st.write(f"**Rationale:** {suggestion.get('rationale', 'N/A')}")
+
+                # GOAL MAPPING
+                goal_mapping = response_data.get("goal_mapping", {})
+                mapped_themes = goal_mapping.get("mapped_themes", [])
+                if mapped_themes:
+                    st.subheader("🎯 Goal Mapping")
+                    for theme in mapped_themes:
+                        st.write(f"**Theme:** {theme.get('theme_name', 'N/A')}")
+                        for goal in theme.get("goals", []):
+                            st.write(f"- {goal.get('goal', 'N/A')} ({goal.get('goal_type', 'Unknown')})")
+
             except requests.exceptions.HTTPError as e:
-                error_response = e.response.json() if e.response else "No response details"
-                st.error(f"API Error for {endpoint}: {e}\nDetails: {error_response}")
+                try:
+                    error_response = e.response.json()
+                except Exception:
+                    error_response = str(e)
+                st.error(f"❌ API Error: {error_response}")
             except Exception as e:
-                st.error(f"Unexpected Error for {endpoint}: {e}")
-        
+                st.error(f"❌ Unexpected Error: {e}")
+
         st.session_state.theme_result_counter = st.session_state.get("theme_result_counter", 0) + 1
+
 
 # --- Render Capabilities Input ---
 def render_capabilities_section():
@@ -680,31 +672,31 @@ def render_capabilities_section():
             return
         
         payload = {"capabilities": differentiating_caps}
-        # st.write("Payload sent to API:", payload)
 
-        try:
-            resp = requests.post(f"{BASE_URL}/differentiation/analyze", json=payload)
-            resp.raise_for_status()
-            response_data = resp.json()
-            
-            st.subheader("Differentiating Capabilities Analysis")
-            with st.container():
-                if response_data.get("error"):
-                    st.error(f"API Error: {response_data['error']}")
-                    return
+        with st.spinner("🔍 AI is analyzing differentiating capabilities and competitive advantages..."):
+            try:
+                resp = requests.post(f"{BASE_URL}/differentiation/analyze", json=payload)
+                resp.raise_for_status()
+                response_data = resp.json()
                 
-                st.markdown("### Summary")
-                st.write(response_data.get("summary", "N/A"))
-                
-                st.markdown("### Differentiating Factors")
-                for factor in response_data.get("differentiating_factors", []):
-                    st.write(f"- {factor}")
-                
-        except requests.exceptions.HTTPError as e:
-            error_response = e.response.json() if e.response else "No response details"
-            st.error(f"API Error: {e}\nDetails: {error_response}")
-        except Exception as e:
-            st.error(f"Unexpected Error: {e}")
+                st.subheader("Differentiating Capabilities Analysis")
+                with st.container():
+                    if response_data.get("error"):
+                        st.error(f"API Error: {response_data['error']}")
+                        return
+                    
+                    st.markdown("### Summary")
+                    st.write(response_data.get("summary", "N/A"))
+                    
+                    st.markdown("### Differentiating Factors")
+                    for factor in response_data.get("differentiating_factors", []):
+                        st.write(f"- {factor}")
+                    
+            except requests.exceptions.HTTPError as e:
+                error_response = e.response.json() if e.response else "No response details"
+                st.error(f"API Error: {e}\nDetails: {error_response}")
+            except Exception as e:
+                st.error(f"Unexpected Error: {e}")
 
 # --- Render Business Goals Input ---
 def render_business_goals_section():
@@ -991,42 +983,42 @@ def render_business_goals_section():
             return
         
         payload = valid_goals[0]  # Assuming one goal for simplicity; adjust if multiple goals needed
-        # st.write("Payload sent to API:", payload)
         
-        try:
-            resp = requests.post(f"{BASE_URL}/business-goal/analyze", json=payload)
-            resp.raise_for_status()
-            response_data = resp.json()
-            
-            st.subheader("Business Goal Recommendations")
-            with st.container():
-                if response_data.get("error"):
-                    st.error(f"API Error: {response_data['error']}")
-                    return
+        with st.spinner("🎯 AI is analyzing business goal feasibility and strategic alignment..."):
+            try:
+                resp = requests.post(f"{BASE_URL}/business-goal/analyze", json=payload)
+                resp.raise_for_status()
+                response_data = resp.json()
                 
-                st.markdown("### Risks Summary")
-                st.write(response_data.get("risks_summary", "N/A"))
-                
-                st.markdown("### Regulatory Compliance Summary")
-                st.write(response_data.get("regulatory_compliance_summary", "N/A"))
-                
-                st.markdown("### Roadblocks Summary")
-                st.write(response_data.get("roadblocks_summary", "N/A"))
-                
-                st.markdown("### Culture Realignment Summary")
-                st.write(response_data.get("culture_realignment_summary", "N/A"))
-                
-                st.markdown("### Change Management Summary")
-                st.write(response_data.get("change_management_summary", "N/A"))
-                
-                st.markdown("### Learning and Development Summary")
-                st.write(response_data.get("learning_and_development_summary", "N/A"))
-                
-        except requests.exceptions.HTTPError as e:
-            error_response = e.response.json() if e.response else "No response details"
-            st.error(f"API Error: {e}\nDetails: {error_response}")
-        except Exception as e:
-            st.error(f"Unexpected Error: {e}")
+                st.subheader("Business Goal Recommendations")
+                with st.container():
+                    if response_data.get("error"):
+                        st.error(f"API Error: {response_data['error']}")
+                        return
+                    
+                    st.markdown("### Risks Summary")
+                    st.write(response_data.get("risks_summary", "N/A"))
+                    
+                    st.markdown("### Regulatory Compliance Summary")
+                    st.write(response_data.get("regulatory_compliance_summary", "N/A"))
+                    
+                    st.markdown("### Roadblocks Summary")
+                    st.write(response_data.get("roadblocks_summary", "N/A"))
+                    
+                    st.markdown("### Culture Realignment Summary")
+                    st.write(response_data.get("culture_realignment_summary", "N/A"))
+                    
+                    st.markdown("### Change Management Summary")
+                    st.write(response_data.get("change_management_summary", "N/A"))
+                    
+                    st.markdown("### Learning and Development Summary")
+                    st.write(response_data.get("learning_and_development_summary", "N/A"))
+                    
+            except requests.exceptions.HTTPError as e:
+                error_response = e.response.json() if e.response else "No response details"
+                st.error(f"API Error: {e}\nDetails: {error_response}")
+            except Exception as e:
+                st.error(f"Unexpected Error: {e}")
 
 # --- Render Chatbot Section ---
 def render_chatbot_section():
@@ -1053,19 +1045,20 @@ def render_chatbot_section():
             "history": st.session_state.chat_history
         }
         
-        try:
-            resp = requests.post(f"{BASE_URL}/chatbot/chatbot", json=payload)
-            resp.raise_for_status()
-            response_data = resp.json()
+        with st.spinner("🤖 AI is processing your question and generating a thoughtful response..."):
+            try:
+                resp = requests.post(f"{BASE_URL}/chatbot/chatbot", json=payload)
+                resp.raise_for_status()
+                response_data = resp.json()
+                
+                # Add AI response to history
+                st.session_state.chat_history.append({"role": "assistant", "message": response_data.get("response", "No response received.")})
+                
+            except (requests.exceptions.RequestException, ValueError) as e:
+                # Handle any network or JSON errors
+                st.error("Failed to connect to the AI service. Please try again.")
+                st.session_state.chat_history.append({"role": "assistant", "message": "Sorry, I'm having trouble connecting. Please try again!"})
             
-            # Add AI response to history
-            st.session_state.chat_history.append({"role": "assistant", "message": response_data.get("response", "No response received.")})
-            
-        except (requests.exceptions.RequestException, ValueError) as e:
-            # Handle any network or JSON errors
-            st.error("Failed to connect to the AI service. Please try again.")
-            st.session_state.chat_history.append({"role": "assistant", "message": "Sorry, I'm having trouble connecting. Please try again!"})
-        
         # Rerun to update UI
         st.rerun()
     elif user_input:

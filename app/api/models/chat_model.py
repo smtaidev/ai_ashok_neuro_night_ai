@@ -7,6 +7,7 @@ class ChatMessage(BaseModel):
 
 class ChatbotRequest(BaseModel):
     message: str
+    session_id: Optional[str] = None  # Optional session ID for user tracking
     history: Optional[List[Dict]] = []
 
 class ChatbotResponse(BaseModel):

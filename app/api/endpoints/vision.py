@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, Body
 from typing import Dict
 from app.api.models.vision_model import VisionInput, VisionResponse
 from app.services.vision_service import process_vision
@@ -13,20 +13,12 @@ async def analyze_vision(
 ):
     """
     Analyzes a business vision statement for its effectiveness and relevance.
-    - If the input text is not a valid vision, it returns a 400 error.
-    - If valid, it returns a score, summary, recommendations, and alternatives.
+    Always returns 200 OK, including error details if any issue is found.
     """
-    # The service returns either the model or an error dict
     response = await process_vision(input_data.vision_statement)
 
-    # Check the type of the response to determine the outcome
+    # Return either the successful response or the error as part of the 200 OK response
     if isinstance(response, Dict) and "error" in response:
-        # If it's a dict with an error, raise a 400 Bad Request
-        raise HTTPException(
-            status_code=400,
-            detail=response["error"]
-        )
+        return VisionResponse(error=response["error"])
 
-    # If we get here, the response is a valid VisionResponse model.
-    # FastAPI automatically sends it with a 200 OK status.
     return response

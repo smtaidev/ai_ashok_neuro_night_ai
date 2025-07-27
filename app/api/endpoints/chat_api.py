@@ -12,8 +12,8 @@ chat_manager = ChatManager()
 @router.post("/chatbot", response_model=ChatbotResponse)
 async def chatbot_endpoint(request: ChatbotRequest):
     try:
-        # Generate a session ID (you might want to pass this from frontend)
-        session_id = "default_session"  # In production, use proper session management
+        # Generate or use provided session ID
+        session_id = request.session_id if hasattr(request, 'session_id') else str(uuid.uuid4())
         
         response = await chat_manager.chat(
             user_id=session_id,
@@ -27,9 +27,9 @@ async def chatbot_endpoint(request: ChatbotRequest):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     
 @router.post("/chatbot/clear")
-async def clear_chat_history():
+async def clear_chat_history(session_id: str = None):
     try:
-        session_id = "default_session"
+        session_id = session_id or str(uuid.uuid4())
         success = chat_manager.clear_chat_history(session_id)
         return {"success": success, "message": "Chat history cleared"}
     except Exception as e:
