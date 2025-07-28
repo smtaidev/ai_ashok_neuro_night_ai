@@ -5,8 +5,19 @@ import plotly.graph_objects as go
 import json
 from datetime import datetime
 
-st.set_page_config(page_title="Clarhet AI - Challenge Analyzer", layout="wide")
-st.title("🧠 Clarhet AI: Test Site")
+st.set_page_config(page_title="Clarhet Zenith", layout="wide")
+st.title("🧠 Clarhet Zenith: Test Site")
+
+if "selected_tone" not in st.session_state:
+    st.session_state.selected_tone = "coach"
+
+with st.sidebar:
+    st.selectbox(
+        "🎤 Select Tone",
+        options=["coach", "advisor", "challenger"],
+        index=["coach", "advisor", "challenger"].index(st.session_state.selected_tone),
+        key="selected_tone"
+    )
 
 BASE_URL = "http://127.0.0.1:8026/api"
 
@@ -17,6 +28,23 @@ trend_areas = [
     "global_market_trends", "environmental_social_impact", "collaboration_partnerships",
     "scenarios_risk_assessment", "emerging_markets_opportunities", "on_the_radar"
 ]
+
+
+
+if "identity_inputs" not in st.session_state:
+    st.session_state.identity_inputs = {
+        "mission": "",
+        "value": "",
+        "purpose": "",
+        "customers": "",
+        "value_proposition": ""
+    }
+
+if "competitors" not in st.session_state:
+    st.session_state.competitors = {
+        "name": "",
+        "description": ""
+    }
 
 if "trend_data" not in st.session_state:
     st.session_state.trend_data = {area: [{"question": "", "answer": "", "impact": "Medium"}] for area in trend_areas}
@@ -62,6 +90,123 @@ if "business_goals" not in st.session_state:
 
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+
+if "trend_summary" not in st.session_state:
+    st.session_state.trend_summary = []
+
+# --- Render Competitors ---
+def render_competitors_section():
+    st.header("🏢 Competitors")
+
+    # Ensure correct structure
+    if "competitors" not in st.session_state or not isinstance(st.session_state.competitors, list):
+        st.session_state.competitors = [{
+            "name": "",
+            "description": ""
+        }]
+    elif any(not isinstance(c, dict) for c in st.session_state.competitors):
+        # Fix corrupted format
+        st.session_state.competitors = [{
+            "name": "",
+            "description": ""
+        }]
+
+    if "competitors_submitted" not in st.session_state:
+        st.session_state.competitors_submitted = False
+
+    # Render each competitor input
+    for i, competitor in enumerate(st.session_state.competitors):
+        with st.container():
+            col1, col2 = st.columns([3, 1])
+
+            competitor["name"] = col1.text_input(
+                f"Competitor Name {i + 1}",
+                value=competitor["name"],
+                placeholder="Enter competitor name",
+                key=f"competitor_name_{i}"
+            )
+
+            competitor["description"] = col1.text_area(
+                f"Description {i + 1}",
+                value=competitor["description"],
+                height=100,
+                placeholder="Enter competitor description",
+                key=f"competitor_desc_{i}"
+            )
+
+            if col2.button("❌", key=f"remove_competitor_{i}") and len(st.session_state.competitors) > 1:
+                st.session_state.competitors.pop(i)
+                st.rerun()
+
+    # Add competitor button (only if less than 3)
+    if len(st.session_state.competitors) < 3:
+        if st.button("➕ Add Competitor"):
+            st.session_state.competitors.append({
+                "name": "",
+                "description": ""
+            })
+            st.rerun()
+    else:
+        st.info("You can only add up to 3 competitors.")
+
+    # Submit button
+    if st.button("✅ Submit Competitor Info"):
+        all_filled = all(c["name"].strip() and c["description"].strip() for c in st.session_state.competitors)
+        if all_filled:
+            st.session_state.competitors_submitted = True
+            st.success("✔️ Competitor information has been stored in session.")
+        else:
+            st.warning("⚠️ Please fill out all competitor names and descriptions before submitting.")
+
+    # Optional: Show stored data for debug
+    # st.write("Session Competitors:", st.session_state.competitors)
+
+# --- Render Identity Inputs ---
+def render_identity_section():
+    st.header("🏢 Company Identity and Zero-In")
+
+    mission = st.text_area(
+        "📌 Mission Statement",
+        value=st.session_state.identity_inputs.get("mission", ""),
+        placeholder="Enter your company's mission..."
+    )
+
+    value = st.text_area(
+        "💎 Core Values",
+        value=st.session_state.identity_inputs.get("value", ""),
+        placeholder="What values guide your company?"
+    )
+
+    purpose = st.text_area(
+        "🎯 Purpose",
+        value=st.session_state.identity_inputs.get("purpose", ""),
+        placeholder="Why does your company exist?"
+    )
+
+    customers = st.text_area(
+        "👥 Customers",
+        value=st.session_state.identity_inputs.get("customers", ""),
+        placeholder="Who are your customers?"
+    )
+
+    value_proposition = st.text_area(
+        "💡 Value Proposition",
+        value=st.session_state.identity_inputs.get("value_proposition", ""),
+        placeholder="What is your value proposition?"
+    )
+
+    if st.button("✅ Submit Identity Info"):
+        if mission.strip() and value.strip() and purpose.strip() and customers.strip() and value_proposition.strip():
+            st.session_state.identity_inputs = {
+                "mission": mission.strip(),
+                "value": value.strip(),
+                "purpose": purpose.strip(),
+                "customers": customers.strip(),
+                "value_proposition": value_proposition.strip()
+            }
+            st.success("✔️ Identity inputs are stored in session and ready to be used later.")
+        else:
+            st.warning("⚠️ Please fill out all five fields before submitting.")
 
 # --- Render Trend Input ---
 def render_trend_section():
@@ -125,6 +270,7 @@ def render_trend_section():
                 st.subheader("📋 Trend Summary")
                 
                 if "summary" in response_data:
+                    st.session_state.trend_summary = response_data["summary"]
                     st.markdown("### 🌟 Key Opportunities")
                     st.markdown(response_data["summary"]["key_opportunities"] if "key_opportunities" in response_data["summary"] else "N/A")
                     st.markdown("### 💪 Strengths")
@@ -440,7 +586,10 @@ def render_vision_section():
         st.session_state.run_analysis = True
     
     if st.session_state.run_analysis and st.session_state.vision_input.strip():
-        payload = {"vision_statement": st.session_state.vision_input.strip()}
+        payload = {
+            "vision_statement": st.session_state.vision_input.strip(),
+            "tone": st.session_state.get("tone", "coach")
+        }
 
         with st.spinner("🔮 AI is analyzing vision clarity, impact, and strategic alignment..."):
             try:
@@ -565,8 +714,17 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
                     "opportunities": [o.strip() for o in swot_input.get("opportunities", []) if o.strip()],
                     "threats": [t.strip() for t in swot_input.get("threats", []) if t.strip()]
                 },
-                "challenges": valid_challenges
-            }
+                "challenges": valid_challenges,
+                "mission": st.session_state.identity_inputs.get("mission", "").strip(),
+                "value": st.session_state.identity_inputs.get("value", "").strip(),
+                "purpose": st.session_state.identity_inputs.get("purpose", "").strip(),
+                "customers": st.session_state.identity_inputs.get("customers", "").strip(),
+                "value_proposition": st.session_state.identity_inputs.get("value_proposition", "").strip(),
+                "competitors": st.session_state.competitors,
+                "trends": st.session_state.trend_summary,
+                "capabilities": st.session_state.capabilities,
+            },
+            "tone": st.session_state.get("tone", "coach"),
         }
 
         with st.spinner("🎯 AI is conducting strategic theme analysis and identifying gaps..."):
@@ -1065,25 +1223,29 @@ def render_chatbot_section():
         st.warning("Please enter a non-empty message.")
 
 # --- Main Rendering with Tabs ---
-tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs(["🔍 Trends", "🧭 SWOT", "🚨 Challenges", "🌟 Vision", "🎯 Strategic Themes", "🛠️ Capabilities", "🏆 Business Goals", "🤖 Chatbot"])
+tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["🏢 Identity", "🛠️ Capabilities", "🔍 Trends", "🧭 SWOT", "🚨 Challenges", "🛠️ Competitors", "🌟 Vision", "🎯 Strategic Themes", "🏆 Business Goals", "🤖 Chatbot"])
 
+with tab0:
+    identity = render_identity_section()
 with tab1:
-    trends = render_trend_section()
+    render_capabilities_section()
 with tab2:
-    swot = render_swot_section()
+    trends = render_trend_section()
 with tab3:
-    render_challenge_section(swot, trends)
+    swot = render_swot_section()
 with tab4:
-    render_vision_section()
+    render_challenge_section(swot, trends)
 with tab5:
+    render_competitors_section()
+with tab6:
+    render_vision_section()
+with tab7:
     render_strategic_theme_section(
         vision_input=st.session_state.get("vision_input", ""),
         swot_input=st.session_state.get("swot_payload", {}),
         challenges_input=st.session_state.get("challenges", [])
     )
-with tab6:
-    render_capabilities_section()
-with tab7:
-    render_business_goals_section()
 with tab8:
+    render_business_goals_section()
+with tab9:
     render_chatbot_section()

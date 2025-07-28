@@ -1,7 +1,7 @@
 # app/api/models/strategic_theme2_model.py
  
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Literal
  
 # Assuming these models exist in other files
 class SWOTDataInput(BaseModel):
@@ -22,16 +22,33 @@ class ScoredChallengeInput(BaseModel):
 class ThemeItem(BaseModel):
     name: str
     description: str
+
+class Competitor(BaseModel):
+    name: str
+    description: str
+
+class Capability(BaseModel):
+    capability: str
+    type: Literal["Core", "Differentiating", "Enabling"]
  
 class StrategyContext(BaseModel):
     vision: Optional[str] = None
     swot: Optional[SWOTDataInput] = None
     challenges: Optional[List[ScoredChallengeInput]] = None
- 
+    mission: Optional[str] = None
+    value: Optional[str] = None
+    purpose: Optional[str] = None
+    customers: Optional[str] = None
+    value_proposition: Optional[str] = None
+    competitors: Optional[List[Competitor]] = None
+    trends: Optional[List[str]] = None
+    capabilities: Optional[List[Capability]] = None
+
 # --- Main Request Model (Profile removed) ---
 class CombinedAnalysisRequest(BaseModel):
     themes: List[ThemeItem]
     context: StrategyContext
+    tone: Optional[str] = "coach"
  
 # --- Individual Request Models (Benchmarking removed) ---
 class GapDetectionRequest(BaseModel):

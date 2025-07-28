@@ -15,9 +15,32 @@ combined_analysis_example = {
   ],
   "context": {
     "vision": "To become the leading provider of sustainable packaging solutions.",
-    "swot": {"strengths": ["Strong brand reputation"],"weaknesses": ["Limited international presence"],"opportunities": ["Growing market for eco-friendly products"],"threats": ["Rising raw material costs"]},
-    "challenges": [{"title": "Supply Chain Volatility","category": "Operations","impact_on_business": "high","ability_to_address": "moderate","description": "Raw material prices are unpredictable.","risk_score": 85}]
-  }
+    "swot": {
+        "strengths": ["Strong brand reputation"],
+        "weaknesses": ["Limited international presence"],
+        "opportunities": ["Growing market for eco-friendly products"],
+        "threats": ["Rising raw material costs"]
+    },
+    "challenges": [
+        {
+            "title": "Supply Chain Volatility",
+            "category": "Operations",
+            "impact_on_business": "high",
+            "ability_to_address": "moderate",
+            "description": "Raw material prices are unpredictable.",
+            "risk_score": 85
+        }
+    ],
+    "mission": "Deliver sustainable packaging globally.",
+    "value": "Eco-innovation, integrity, and transparency.",
+    "purpose": "To reduce plastic waste through innovation.",
+    "customers": "B2B companies seeking sustainable packaging.",
+    "value_proposition": "Biodegradable solutions that protect the planet.",
+    "competitors": ["EcoPack Inc", "GreenWrap Ltd"],
+    "trends": ["Sustainability", "Bioplastics", "Circular economy"],
+    "capabilities": ["Rapid prototyping", "Global distribution"]
+  },
+  "tone": "coach"
 }
  
 # The endpoint definition

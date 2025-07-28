@@ -5,6 +5,7 @@ from typing import List, Optional
 class VisionInput(BaseModel):
     """Input model for vision endpoint."""
     vision_statement: str
+    tone: Optional[str] = "coach"
 
 # Response validation (Reverted to original clean structure)
 class VisionResponse(BaseModel):
