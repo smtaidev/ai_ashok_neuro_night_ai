@@ -267,40 +267,40 @@ def render_trend_section():
                 resp = requests.post(f"{BASE_URL}/trends/analyze", json=trends_payload)
                 resp.raise_for_status()
                 response_data = resp.json()
-                st.subheader("📋 Trend Summary")
+                st.subheader("📋 Trend Output")
+
                 
-                if "summary" in response_data:
-                    st.session_state.trend_summary = response_data["summary"]
-                    st.markdown("### 🌟 Key Opportunities")
-                    st.markdown(response_data["summary"]["key_opportunities"] if "key_opportunities" in response_data["summary"] else "N/A")
-                    st.markdown("### 💪 Strengths")
-                    st.markdown(response_data["summary"]["strengths"] if "strengths" in response_data["summary"] else "N/A")
-                    st.markdown("### ⚠️ Significant Risks")
-                    st.markdown(response_data["summary"]["significant_risks"] if "significant_risks" in response_data["summary"] else "N/A")
-                    st.markdown("### 🏔 Challenges")
-                    st.markdown(response_data["summary"]["challenges"] if "challenges" in response_data["summary"] else "N/A")
-                    st.markdown("### 💡 Strategic Recommendations")
-                    st.markdown(response_data["summary"]["strategic_recommendations"] if "strategic_recommendations" in response_data["summary"] else "N/A")
-                    st.markdown("### ❌ Irrelevant Answers")
-                    for i, answer in enumerate(response_data["summary"].get("irrelevant_answers", [])):
-                        st.markdown(f"{i+1}. {answer}")
-                    
-                    if "top_trends" in response_data and response_data["top_trends"]:
-                        st.markdown("### 📈 Top Trends")
-                        for trend in response_data["top_trends"]:
-                            st.markdown(f"- {trend}")
-                    
-                    if "radar_executive_summary" in response_data and response_data["radar_executive_summary"]:
-                        st.markdown("### 🔮 Radar Executive Summary")
-                        for summary in response_data["radar_executive_summary"]:
-                            st.markdown(f"- {summary}")
-                    
-                    if "radar_recommendation" in response_data and response_data["radar_recommendation"]:
-                        st.markdown("### 🛠 Radar Recommendations")
-                        for rec in response_data["radar_recommendation"]:
+                if "trend_synthesis" in response_data and response_data["trend_synthesis"]:
+                    st.markdown("### 📈 Trend Synthesis")
+                    for trends in response_data["trend_synthesis"]:
+                        st.markdown(f"- {trends}")
+                if "early_warnings" in response_data:
+                    st.markdown("### 🚨 Early Warnings")
+                    st.markdown(response_data["early_warnings"])
+                
+                if "strategic_opportunities" in response_data and response_data["strategic_opportunities"]:
+                    st.markdown("### 🌟 Strategic Opportunities")
+                    for opportunity in response_data["strategic_opportunities"]:
+                        st.markdown(f"- {opportunity}")
+                
+                if "analyst_recommendations" in response_data:
+                    st.markdown("### 📝 Analyst Recommendations")
+                    st.markdown(response_data["analyst_recommendations"])
+
+                if "radar_executive_summary" in response_data and response_data["radar_executive_summary"]:
+                    st.markdown("### 🔮 On the Radar Summary")
+                    for summary in response_data["radar_executive_summary"]:
+                        st.markdown(f"- {summary}")
+                
+                if "radar_recommendation" in response_data and response_data["radar_recommendation"]:
+                    st.markdown("### 🛠 On the Radar Recommendations")
+                    for rec in response_data["radar_recommendation"]:
                             st.markdown(f"- {rec}")
-                else:
-                    st.warning("No summary generated.")
+                
+                if response_data['error']:
+                    st.markdown("### ⚠️ Some of the answers were not relevant or did not match the expected format.")
+                    st.error(f"{response_data['error']}")
+
                     
             except requests.exceptions.HTTPError as e:
                 error_response = e.response.json() if e.response else "No response details"
@@ -858,6 +858,7 @@ def render_capabilities_section():
 
 # --- Render Business Goals Input ---
 def render_business_goals_section():
+    st.warning("⚠️ Business Goals Input is under development and may not be fully functional yet.")
     st.header("🏆 Business Goals Input")
     
     if st.button("➕ Add New Business Goal"):

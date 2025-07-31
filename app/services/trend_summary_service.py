@@ -1,12 +1,13 @@
 # app/services/trend_summary_service.py
 
-
 from openai import AsyncOpenAI
 import json
 import re
 from ..core.config import settings
+from ..core.AI_models import MODEL, TEMPERATURE, MAX_TOKENS
 from ..api.models.trend_summary_model import TrendDataInput, TrendSummaryResponse, TrendCombinedResponse
-from ..memory import store  
+from ..memory import store
+from ..utils.Tone import TONE_GUIDELINES
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
@@ -39,171 +40,145 @@ def _format_data_for_prompt(data: TrendDataInput) -> str:
             prompt_text += "\n"
     return prompt_text
 
-def _parse_summary_response(text: str) -> TrendSummaryResponse:
-    """Parse AI response to extract summary sections in JSON format."""
+def _parse_combined_response(text: str) -> TrendCombinedResponse:
+    """Parse the entire AI JSON response into a TrendCombinedResponse object."""
     try:
-        # Expect JSON structure for summary
         json_match = re.search(r'\{.*\}', text, re.DOTALL)
         if not json_match:
-            raise ValueError("No valid JSON found in response")
+            return TrendCombinedResponse(
+                summary=TrendSummaryResponse(key_opportunities="", strengths="", significant_risks="", challenges="", strategic_recommendations=""),
+                error=f"Could not parse AI response, no valid JSON found. Raw response: {text[:500]}"
+            )
 
         data = json.loads(json_match.group(0))
-        summary = data.get("summary", {})
-        irrelevant_answers = data.get("irrelevant_answers", [])
 
-        return TrendSummaryResponse(
-            key_opportunities=summary.get("key_opportunities", "N/A"),
-            strengths=summary.get("strengths", "N/A"),
-            significant_risks=summary.get("significant_risks", "N/A"),
-            challenges=summary.get("challenges", "N/A"),
-            strategic_recommendations=summary.get("strategic_recommendations", "N/A"),
-            irrelevant_answers=irrelevant_answers
+        # Parse the nested summary object
+        summary_data = data.get("summary", {})
+        summary = TrendSummaryResponse(
+            key_opportunities=summary_data.get("key_opportunities", "N/A"),
+            strengths=summary_data.get("strengths", "N/A"),
+            significant_risks=summary_data.get("significant_risks", "N/A"),
+            challenges=summary_data.get("challenges", "N/A"),
+            strategic_recommendations=summary_data.get("strategic_recommendations", "N/A"),
+            irrelevant_answers=data.get("irrelevant_answers", [])
         )
-    except Exception:
-        return TrendSummaryResponse(
-            key_opportunities="Error: Could not parse opportunities and strengths.",
-            strengths="Error: Could not parse strengths.",
-            significant_risks="Error: Could not parse risks and challenges.",
-            challenges="Error: Could not parse challenges.",
-            strategic_recommendations="Error: Could not parse recommendations.",
-            irrelevant_answers=["Error parsing irrelevant answers."]
+
+        # Parse the other top-level fields
+        return TrendCombinedResponse(
+            summary=summary,
+            trend_synthesis=data.get("trend_synthesis", []),
+            early_warnings=data.get("early_warnings", "N/A"),
+            strategic_opportunities=data.get("strategic_opportunities", []),
+            analyst_recommendations=data.get("analyst_recommendations", "N/A")
+        )
+
+    except (json.JSONDecodeError, ValueError) as e:
+        return TrendCombinedResponse(
+            summary=TrendSummaryResponse(key_opportunities="", strengths="", significant_risks="", challenges="", strategic_recommendations=""),
+            error=f"Error parsing JSON from AI response: {str(e)}. Raw text: {text[:500]}"
+        )
+    except Exception as e:
+        return TrendCombinedResponse(
+            summary=TrendSummaryResponse(key_opportunities="", strengths="", significant_risks="", challenges="", strategic_recommendations=""),
+            error=f"An unexpected error occurred during parsing: {str(e)}"
         )
 
 async def generate_combined_summary_and_trends(data: TrendDataInput) -> TrendCombinedResponse:
-    # Store input in memory for /top-trends fallback
     store.last_trend_input = data
-
-    # Step 1: Format full input and generate general summary + trends
     formatted_data = _format_data_for_prompt(data)
 
-    system_prompt = """
+    # Get the tone guideline, defaulting to "coach" if tone is not specified or invalid
+    tone = data.tone or "coach"
+    tone_guideline = TONE_GUIDELINES.get(tone, TONE_GUIDELINES["coach"])  # Fallback to coach if tone is invalid
+
+    system_prompt = f"""
         You are an expert business consultant with extensive experience in strategic planning, market trends, and innovation. Your task is to analyze TRENDS ASSESSMENT RAW DATA and deliver insights as a senior consultant would in a real business setting.
 
-        **General Instructions:**
-        - Only analyze answers that are clearly business-related (i.e., relevant to strategy, market trends, or innovation).
-        - Ignore answers like 'I don't know'.
-        - If an answer is irrelevant, nonsensical, or not business-related (e.g., 'I love movies', 'tell me a joke', 'Trump is the US president', 'My favorite color is blue'), do NOT include it in the summary.
-        - Instead, add this message to the 'irrelevant_answers' list:  
-        - \"In response to the question '{question}', the provided answer '{answer}' was not relevant to business strategy, market trends, or innovation. Please provide a more relevant answer.\"
-        - If all answers in a section are irrelevant or the input is empty, skip that section in the summary.
-        - If the entire input contains no relevant answers, return an error message in the summary.
+        ### Tone Instructions:
+        {tone_guideline}
 
-        **Section-Based Analysis:**
-        - For each section of trend data:
-        - If the input is irrelevant or not business-related, respond with:  
-            - \"The input for this section appears to be irrelevant or not business-related. Please provide more relevant information.\"
-        - If the data is business-relevant, analyze it and include it in your summary.
+        ### General Instructions:
+        - Analyze only business-related answers relevant to strategy, market trends, or innovation.
+        - Ignore answers like 'I don't know' or nonsensical, non-business-related input.
+        - If an answer is irrelevant, add a descriptive message to the 'irrelevant_answers' list.
+        - If all answers are irrelevant, return an error message in the summary sections.
 
-        **Executive Summary Structure:**
-        Provide a structured summary with the following sections:
-        1. **Key Opportunities**
-        2. **Strengths**
-        3. **Significant Risks**
-        4. **Challenges**
+        ### Part 1: Executive Summary & Synthesis
+        Analyze all sections of the raw data to create a holistic view.
+        - **Executive Summary:** Structure this with four key sections: Key Opportunities, Strengths, Significant Risks, and Challenges.
+        - **Strategic Recommendations:** Provide actionable, evidence-based recommendations based on the data.
+        - **Trend Synthesis:** Identify and list the Top 3 Emerging Trends based on their strategic relevance and frequency in the data.
 
-        **Strategic Recommendations:**
-        - Base your recommendations on the data provided.
-        - Reference specific trends or examples.
-        - Ensure recommendations are actionable, evidence-based, and appropriate for business leaders.
-        - Avoid generic statements. Use clear, professional language.
-        - Structure your output as if presenting to a board or executive team.
+        ### Part 2: Analyst's Briefing
+        Adopt the mindset of an analyst delivering a sharp, direct briefing to leadership.
+        - **Early Warnings:** Highlight blind spots, underappreciated risks, or mismatched intensity (e.g., an item marked 'Low' impact that is clearly a High-relevance threat).
+        - **Strategic Opportunities:** Suggest 2–4 forward-looking ideas or new directions the business could explore based on the trends.
+        - **Analyst Recommendations:** State what the leadership team should consider, investigate, or act on based on your interpretation. Be crisp, direct, and avoid filler.
 
-        **Trend Extraction:**
-        - Identify and list the **Top 3 Emerging Trends** based on strategic relevance and frequency.
-
-        **Response Format:**
-        Return your analysis using the exact structure below:
+        ### Response Format:
+        Return your complete analysis using the exact JSON structure below. Ensure all keys are present.
 
         ```json
-        {
-        "summary": {
+        {{
+          "summary": {{
             "key_opportunities": "...",
             "strengths": "...",
             "significant_risks": "...",
             "challenges": "...",
             "strategic_recommendations": "..."
-        },
-        "top_trends": [
-            "Trend 1",
-            "Trend 2",
-            "Trend 3"
-        ],
-        "irrelevant_answers": [
-            "In response to the question '{question}', the provided answer '{answer}' was not relevant to business strategy, market trends, or innovation. Please provide a more relevant answer."
-        ]
-        }
-    """
+          }},
+          "trend_synthesis": [
+            "Trend 1: Detailed description of the first major synthesized trend.",
+            "Trend 2: Detailed description of the second major synthesized trend.",
+            "Trend 3: Detailed description of the third major synthesized trend."
+          ],
+          "early_warnings": "Concise summary of blind spots, underappreciated risks, or mismatched intensity.",
+          "strategic_opportunities": [
+            "A forward-looking idea or new direction the business could explore.",
+            "Another forward-looking idea or new direction."
+          ],
+          "analyst_recommendations": "Direct and actionable recommendations for the leadership team.",
+          "irrelevant_answers": [
+            "In response to the question '{{question}}', the provided answer '{{answer}}' was not relevant to business strategy, market trends, or innovation. Please provide a more relevant answer."
+          ]
+        }}    """
+
     try:
         result = await client.chat.completions.create(
-            model="gpt-4o-mini",
+            model=MODEL,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": formatted_data}
             ],
-            temperature=0.4,
-            max_tokens=1000
+            temperature=TEMPERATURE,
+            max_tokens=2048  
         )
 
         raw_response = result.choices[0].message.content.strip()
 
-        # Parse summary + trends
+        # Step 1: Parse the main summary, synthesis, and analyst briefing
         parsed_response = _parse_combined_response(raw_response)
 
-        # Step 2: Generate radar analysis from [on_the_radar](http://_vscodecontentref_/0) section
+        # If parsing failed and an error was set, return immediately
+        if parsed_response.error:
+            return parsed_response
+
+        # Step 2: Generate radar analysis from the 'on_the_radar' section
         radar_summary, radar_recommendations = await generate_radar_analysis(data)
 
-        return TrendCombinedResponse(
-            summary=parsed_response.summary,
-            top_trends=parsed_response.top_trends,
-            radar_executive_summary=radar_summary,
-            radar_recommendation=radar_recommendations
-        )
+        # Step 3: Add the radar analysis to the successfully parsed response object
+        parsed_response.radar_executive_summary = radar_summary
+        parsed_response.radar_recommendation = radar_recommendations
+
+        return parsed_response
 
     except Exception as e:
+        # Catch exceptions from the API call or other unexpected errors
         return TrendCombinedResponse(
-            summary=TrendSummaryResponse(
-                key_opportunities="Error generating summary.",
-                strengths=str(e),
-                significant_risks="Check logs.",
-                challenges="Check logs.",
-                strategic_recommendations="Check logs.",
-                irrelevant_answers=["Error generating summary."]
-            ),
-            top_trends=["Error generating trends."],
-            radar_executive_summary=["Error analyzing early signals."],
-            radar_recommendation=["N/A"]
+            summary=TrendSummaryResponse(key_opportunities="", strengths="", significant_risks="", challenges="", strategic_recommendations=""),
+            error=f"An error occurred while generating the trend summary: {str(e)}"
         )
 
-def _parse_combined_response(text: str) -> TrendCombinedResponse:
-    try:
-        # Expect JSON structure for the entire response
-        json_match = re.search(r'\{.*\}', text, re.DOTALL)
-        if not json_match:
-            raise ValueError("No valid JSON found in response")
-
-        data = json.loads(json_match.group(0))
-        trends = data.get("top_trends", [])
-
-        # Use _parse_summary_response to parse the summary section
-        summary = _parse_summary_response(text)
-
-        return TrendCombinedResponse(
-            summary=summary,
-            top_trends=trends[:3] if isinstance(trends, list) else ["Error parsing top trends."]
-        )
-
-    except Exception:
-        return TrendCombinedResponse(
-            summary=TrendSummaryResponse(
-                key_opportunities="Error parsing summary.",
-                strengths="Error parsing strengths.",
-                significant_risks="Error parsing risks.",
-                challenges="Error parsing challenges.",
-                strategic_recommendations="Check raw LLM response.",
-                irrelevant_answers=["Error parsing summary."]
-            ),
-            top_trends=["Error parsing top trends."]
-        )
 
 async def generate_radar_analysis(data: TrendDataInput) -> tuple[list[str], list[str]]:
     radar_entries = data.on_the_radar
@@ -212,50 +187,48 @@ async def generate_radar_analysis(data: TrendDataInput) -> tuple[list[str], list
 
     radar_prompt = "You are an innovation strategist. Analyze the following early warning trend signals:\n\n"
     for item in radar_entries:
-        if item.answer:
+        if item.answer and item.answer.strip():
             radar_prompt += f"Q: {item.question}\nA: {item.answer}\nImpact: {item.impact}\n\n"
 
     radar_prompt += (
-        "Now write:\n"
-        "1. A short summary explaining the strategic implications.\n"
-        "2. A short list (2–3) of strategic recommendations.\n\n"
-        "FORMAT:\n"
-        "Summary:\n- ...\n\nRecommendations:\n- ...\n- ..."
+        "Based on these signals, provide:\n"
+        "1. A short executive summary explaining the strategic implications.\n"
+        "2. A short, actionable list (2–3 items) of strategic recommendations.\n\n"
+        "Use the following format exactly:\n"
+        "Summary:\n- Bullet point 1\n- Bullet point 2\n\nRecommendations:\n- Recommendation 1\n- Recommendation 2"
     )
 
     response = await client.chat.completions.create(
-        model="gpt-4o-mini",
+        model=MODEL,
         messages=[
             {"role": "system", "content": "You are an innovation strategist."},
             {"role": "user", "content": radar_prompt}
         ],
-        temperature=0.4,
-        max_tokens=600,
+        temperature=TEMPERATURE,
+        max_tokens=MAX_TOKENS
     )
 
     content = response.choices[0].message.content.strip()
 
-    # Parse sections
+    # Parse sections based on headers
     summary_lines = []
     recommendation_lines = []
-    summary_started = False
-    recommendation_started = False
+    current_section = None
 
     for line in content.splitlines():
         line = line.strip()
         if not line:
             continue
-        if line.lower().startswith("summary"):
-            summary_started = True
-            recommendation_started = False
+        if line.lower().startswith("summary:"):
+            current_section = "summary"
             continue
-        if line.lower().startswith("recommendation"):
-            summary_started = False
-            recommendation_started = True
+        if line.lower().startswith("recommendations:"):
+            current_section = "recommendations"
             continue
-        if summary_started:
+
+        if current_section == "summary":
             summary_lines.append(line.strip("- ").strip())
-        if recommendation_started:
+        elif current_section == "recommendations":
             recommendation_lines.append(line.strip("- ").strip())
 
     return summary_lines, recommendation_lines

@@ -10,37 +10,85 @@ router = APIRouter()
 # Example for the documentation (profile key removed)
 combined_analysis_example = {
   "themes": [
-    {"name": "Digital Transformation", "description": "Modernize core infrastructure."},
-    {"name": "Enhance Customer Experience", "description": "Improve support response times."}
+    {
+      "name": "Digital Transformation",
+      "description": "Modernize internal systems and customer-facing platforms to improve agility and user experience."
+    },
+    {
+      "name": "Customer Centricity",
+      "description": "Enhance customer relationships by personalizing services and streamlining engagement processes."
+    }
   ],
   "context": {
-    "vision": "To become the leading provider of sustainable packaging solutions.",
+    "vision": "To be the leading provider of agile and sustainable digital solutions in emerging markets.",
     "swot": {
-        "strengths": ["Strong brand reputation"],
-        "weaknesses": ["Limited international presence"],
-        "opportunities": ["Growing market for eco-friendly products"],
-        "threats": ["Rising raw material costs"]
+      "strengths": [
+        "Strong brand presence in Southeast Asia",
+        "Robust engineering talent"
+      ],
+      "weaknesses": [
+        "Slow decision-making process",
+        "Limited automation in customer service"
+      ],
+      "opportunities": [
+        "Growing demand for digital transformation",
+        "Government support for tech innovation"
+      ],
+      "threats": [
+        "New market entrants with disruptive pricing",
+        "Changing data privacy regulations"
+      ]
     },
     "challenges": [
-        {
-            "title": "Supply Chain Volatility",
-            "category": "Operations",
-            "impact_on_business": "high",
-            "ability_to_address": "moderate",
-            "description": "Raw material prices are unpredictable.",
-            "risk_score": 85
-        }
+      {
+        "title": "Improve Talent Retention",
+        "category": "HR",
+        "impact_on_business": "High",
+        "ability_to_address": "Medium",
+        "description": "Attrition in key engineering roles has increased over the past year.",
+        "risk_score": 8
+      },
+      {
+        "title": "Ensure GDPR Compliance",
+        "category": "Regulatory",
+        "impact_on_business": "High",
+        "ability_to_address": "High",
+        "description": "New products must comply with GDPR to avoid penalties.",
+        "risk_score": 9
+      }
     ],
-    "mission": "Deliver sustainable packaging globally.",
-    "value": "Eco-innovation, integrity, and transparency.",
-    "purpose": "To reduce plastic waste through innovation.",
-    "customers": "B2B companies seeking sustainable packaging.",
-    "value_proposition": "Biodegradable solutions that protect the planet.",
-    "competitors": ["EcoPack Inc", "GreenWrap Ltd"],
-    "trends": ["Sustainability", "Bioplastics", "Circular economy"],
-    "capabilities": ["Rapid prototyping", "Global distribution"]
+    "mission": "Deliver digital innovation with integrity and speed.",
+    "value": "Customer obsession and operational excellence.",
+    "purpose": "Empower businesses with transformative digital tools.",
+    "customers": "Enterprises in fintech, healthcare, and e-commerce sectors.",
+    "value_proposition": "We simplify complex digital transformation for growth-stage companies.",
+    "competitors": [
+      {
+        "name": "NextGen Tech",
+        "description": "A fast-scaling competitor offering AI-based workflow tools."
+      },
+      {
+        "name": "Agilisys",
+        "description": "Focused on public-sector digital transformation with strong data compliance posture."
+      }
+    ],
+    "trends": "AI integration, Hyper-personalization, Remote workforce enablement",
+    "capabilities": [
+      {
+        "capability": "Data Analytics",
+        "type": "Core"
+      },
+      {
+        "capability": "AI Automation",
+        "type": "Differentiating"
+      },
+      {
+        "capability": "Customer Relationship Management",
+        "type": "Differentiating"
+      }
+    ]
   },
-  "tone": "coach"
+  "tone": "advisor"
 }
  
 # The endpoint definition

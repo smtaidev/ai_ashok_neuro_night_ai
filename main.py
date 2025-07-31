@@ -2,8 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation, business_goal, chat_api
-
+from app.api.endpoints import strategic_theme2, trend_summary,swot_analysis,challenge_risk, vision, strategic_theme, differentiation, business_goal, chat_api, swot_analysis2, business_goal2
 app = FastAPI(
     title="Clarhet AI API",
     description="API for strategic business analysis, including Trends and SWOT.",
@@ -27,6 +26,12 @@ app.include_router(
     swot_analysis.router,
     prefix="/api/swot"
 )
+
+app.include_router(
+    swot_analysis2.router,
+    prefix="/api/swot"
+)
+
 
 app.include_router(
     challenge_risk.router,
@@ -65,6 +70,14 @@ app.include_router(
     prefix="/api/business-goal",
     tags=["Business Goals"]
 )
+
+app.include_router(
+    business_goal2.router,
+    prefix="/api/business-goal",
+    tags=["Business Goals"] 
+)
+
+
 
 app.include_router(
     chat_api.router,

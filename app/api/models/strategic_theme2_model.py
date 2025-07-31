@@ -29,7 +29,7 @@ class Competitor(BaseModel):
 
 class Capability(BaseModel):
     capability: str
-    type: Literal["Core", "Differentiating", "Enabling"]
+    type: Literal["Core", "Differentiating"]
  
 class StrategyContext(BaseModel):
     vision: Optional[str] = None
@@ -41,7 +41,7 @@ class StrategyContext(BaseModel):
     customers: Optional[str] = None
     value_proposition: Optional[str] = None
     competitors: Optional[List[Competitor]] = None
-    trends: Optional[List[str]] = None
+    trends: Optional[str] = None
     capabilities: Optional[List[Capability]] = None
 
 # --- Main Request Model (Profile removed) ---

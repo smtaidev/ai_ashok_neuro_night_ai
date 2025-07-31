@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel
 from typing import List, Optional
+from ..models.strategic_theme2_model import Capability
 
 # Validating the single question-answer-impact structure 
 class TrendAnswer(BaseModel):
@@ -23,6 +24,14 @@ class TrendDataInput(BaseModel):
     scenarios_risk_assessment: List[TrendAnswer] = []
     emerging_markets_opportunities: List[TrendAnswer] = []
     on_the_radar: List[TrendAnswer] = []
+    tone: Optional[str] = "coach"
+    mission: Optional[str] = None
+    value: Optional[str] = None
+    purpose: Optional[str] = None
+    capabilities: Optional[List[Capability]] = None
+
+
+
 
 # This is the main OUTPUT model. Our API will guarantee the response matches this structure.
 class TrendSummaryResponse(BaseModel):
@@ -37,7 +46,10 @@ class TrendSummaryResponse(BaseModel):
 # Validating the combined response model that includes both summary and top trends
 class TrendCombinedResponse(BaseModel):
     summary: TrendSummaryResponse
-    top_trends: List[str]
+    trend_synthesis: Optional[List[str]] = None
+    early_warnings: Optional[str] = None
+    strategic_opportunities: Optional[List[str]] = None
+    analyst_recommendations: Optional[str] = None
     radar_executive_summary: Optional[List[str]] = []
     radar_recommendation: Optional[List[str]] = []
-
+    error: Optional[str] = None
