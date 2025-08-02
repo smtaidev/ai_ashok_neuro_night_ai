@@ -19,7 +19,7 @@ with st.sidebar:
         key="selected_tone"
     )
 
-BASE_URL = "http://127.0.0.1:8000/api"
+BASE_URL = "http://127.0.0.1:8026/api"
 
 # --- Initialize Session State ---
 trend_areas = [
