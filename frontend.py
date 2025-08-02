@@ -562,7 +562,7 @@ def render_challenge_section(swot_input, trend_input):
                                     st.write(value)
                     
                     if not response_data:
-                        st.warning("No recommendations generated.")
+                        st.warning("Sorry we couldn't process any recommendations for the challenges provided.")
                         
                 except requests.exceptions.HTTPError as e:
                     error_response = e.response.json() if e.response else "No response details"
@@ -602,7 +602,7 @@ def render_vision_section():
                 # ✅ Check for error key and handle it gracefully
 
                 if response_data["error"] is not None:
-                    st.warning(f"{response_data['error']}")
+                    st.warning(f"Oops!! something is wrong. {response_data['error']}")
                     st.session_state.run_analysis = False
                     return  # Exit early
 
@@ -736,7 +736,7 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
                 response_data = resp.json()
 
                 if response_data.get("error"):
-                    st.warning(f"⚠️ {response_data['error']}")
+                    st.warning(f"⚠️ Oops!! something is wrong. {response_data['error']}")
                     return
 
                 # GAP DETECTION
@@ -842,7 +842,7 @@ def render_capabilities_section():
                 st.subheader("Differentiating Capabilities Analysis")
                 with st.container():
                     if response_data.get("error"):
-                        st.error(f"API Error: {response_data['error']}")
+                        st.error(f"Oops!! something is wrong. {response_data['error']}")
                         return
                     
                     st.markdown("### Summary")
@@ -1168,7 +1168,7 @@ def render_business_goals_section():
                 response_data = resp.json()
 
                 if response_data["error"]:
-                    st.error(f"X {response_data['error']}")
+                    st.error(f"Oops!! something is wrong. {response_data['error']}")
                 else:       
                     st.subheader("Business Goal Recommendations")
                     with st.container():
@@ -1179,8 +1179,8 @@ def render_business_goals_section():
                         if "smart_suggestions" in response_data:
                             st.markdown("### SMART Suggestions")
                             for suggestion in response_data["smart_suggestions"]:
-                                st.write(f"Title: {suggestion.get('title', "looks fine")}")
-                                st.write(f"Description: {suggestion.get('description', "nicely stated")}\n")
+                                st.write(f"Title: {suggestion.get('title', 'looks fine')}")
+                                st.write(f"Description: {suggestion.get('description', 'nicely stated')}\n")
 
                     with st.container():
                         if "strategic_priorities" in response_data:
