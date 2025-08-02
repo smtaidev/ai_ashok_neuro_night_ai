@@ -14,13 +14,28 @@ client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
 
 def _format_prompt_for_goal_analysis(request: BusinessGoalAnalysisRequest) -> str:
     """Formats the business goals and strategic context into a clear text prompt."""
-    
+
     prompt = "## STRATEGIC CONTEXT\n"
     prompt += f"- **Vision:** {request.vision}\n"
-    prompt += f"- **Strategic Themes:** {', '.join(request.strategic_themes)}\n"
-    prompt += f"- **Key Challenges:** {', '.join(request.challenges)}\n\n"
-    
-    prompt += "## BUSINESS GOALS FOR ANALYSIS\n\n"
+
+    # Detailed Strategic Themes
+    prompt += "- **Strategic Themes:**\n"
+    for i, theme in enumerate(request.strategic_themes, 1):
+        prompt += f"  {i}. {theme.name} — {theme.description}\n"
+
+    # Detailed Challenges
+    prompt += "- **Key Challenges:**\n"
+    for i, challenge in enumerate(request.challenges, 1):
+        prompt += (
+            f"  {i}. {challenge.title}\n"
+            f"     - Category: {challenge.category}\n"
+            f"     - Impact on Business: {challenge.impact_on_business}\n"
+            f"     - Ability to Address: {challenge.ability_to_address}\n"
+            f"     - Risk Score: {challenge.risk_score}\n"
+            f"     - Description: {challenge.description}\n"
+        )
+
+    prompt += "\n## BUSINESS GOALS FOR ANALYSIS\n\n"
     for i, goal in enumerate(request.goals, 1):
         prompt += f"### Goal {i}: {goal.title}\n"
         prompt += f"- **Description:** {goal.description}\n"
@@ -30,10 +45,10 @@ def _format_prompt_for_goal_analysis(request: BusinessGoalAnalysisRequest) -> st
         prompt += f"- **Impacts:** "
         prompt += f"Risks ({goal.impact_ratings.risks}), "
         prompt += f"Compliance ({goal.impact_ratings.compliance}), "
-        prompt += f"Change Mgmt ({goal.impact_ratings.change_management}), "
-        prompt += f"Capabilities ({goal.impact_ratings.capabilities})\n\n"
-        
+        prompt += f"Change Management ({goal.impact_ratings.change_management}) \n\n"
+
     return prompt
+
 
 async def analyze_business_goals(request: BusinessGoalAnalysisRequest) -> BusinessGoalAnalysisResponse:
     """
@@ -100,7 +115,7 @@ async def analyze_business_goals(request: BusinessGoalAnalysisRequest) -> Busine
             return BusinessGoalAnalysisResponse(
                 alignment_summary="", smart_suggestions=[], strategic_priorities=[],
                 strategic_fit_scores=[], execution_watchouts=[],
-                dashboard_insights=DashboardInsights(risks=[], regulatory_compliances=[], roadblocks=[], talent=[], culture_realignment=[], change_management=[], learning_and_development=[], capabilities=[]),
+                dashboard_insights=DashboardInsights(risks=[], regulatory_compliances=[], roadblocks=[], talent=[], culture_realignment=[], change_management=[], learning_and_development=[]),
                 error=error_msg
             )
         
@@ -117,6 +132,6 @@ async def analyze_business_goals(request: BusinessGoalAnalysisRequest) -> Busine
         return BusinessGoalAnalysisResponse(
             alignment_summary="", smart_suggestions=[], strategic_priorities=[],
             strategic_fit_scores=[], execution_watchouts=[],
-            dashboard_insights=DashboardInsights(risks=[], regulatory_compliances=[], roadblocks=[], talent=[], culture_realignment=[], change_management=[], learning_and_development=[], capabilities=[]),
+            dashboard_insights=DashboardInsights(risks=[], regulatory_compliances=[], roadblocks=[], talent=[], culture_realignment=[], change_management=[], learning_and_development=[]),
             error=error_message
         )

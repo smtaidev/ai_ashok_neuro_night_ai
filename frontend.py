@@ -19,7 +19,7 @@ with st.sidebar:
         key="selected_tone"
     )
 
-BASE_URL = "http://127.0.0.1:8026/api"
+BASE_URL = "http://127.0.0.1:8000/api"
 
 # --- Initialize Session State ---
 trend_areas = [
@@ -92,7 +92,7 @@ if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
 if "trend_summary" not in st.session_state:
-    st.session_state.trend_summary = []
+    st.session_state.trend_summary = ""
 
 # --- Render Competitors ---
 def render_competitors_section():
@@ -156,7 +156,7 @@ def render_competitors_section():
             st.session_state.competitors_submitted = True
             st.success("✔️ Competitor information has been stored in session.")
         else:
-            st.warning("⚠️ Please fill out all competitor names and descriptions before submitting.")
+            st.warning("⚠️ We need to know more details about your competitors.")
 
     # Optional: Show stored data for debug
     # st.write("Session Competitors:", st.session_state.competitors)
@@ -206,7 +206,7 @@ def render_identity_section():
             }
             st.success("✔️ Identity inputs are stored in session and ready to be used later.")
         else:
-            st.warning("⚠️ Please fill out all five fields before submitting.")
+            st.warning("⚠️ Almost there! Please fill out all fields before submitting.")
 
 # --- Render Trend Input ---
 def render_trend_section():
@@ -261,13 +261,13 @@ def render_trend_section():
                         "impact": entry["impact"]
                     })
             trends_payload[area] = valid_entries
-        
-        with st.spinner("🤖 AI is analyzing market trends and patterns... This may take a moment."):
+
+        with st.spinner("Just a moment, analyzing market trends and patterns for you..."):
             try:
                 resp = requests.post(f"{BASE_URL}/trends/analyze", json=trends_payload)
                 resp.raise_for_status()
                 response_data = resp.json()
-                st.subheader("📋 Trend Output")
+                st.header("📋 Trend Output")
 
                 
                 if "trend_synthesis" in response_data and response_data["trend_synthesis"]:
@@ -284,6 +284,7 @@ def render_trend_section():
                         st.markdown(f"- {opportunity}")
                 
                 if "analyst_recommendations" in response_data:
+                    st.session_state.trend_summary = response_data["analyst_recommendations"]
                     st.markdown("### 📝 Analyst Recommendations")
                     st.markdown(response_data["analyst_recommendations"])
 
@@ -372,7 +373,7 @@ def render_swot_section():
 
     if st.button("📊 Analyze SWOT"):
         if any(swot_payload.values()):
-            with st.spinner("🧠 AI is conducting strategic SWOT analysis... Evaluating organizational position."):
+            with st.spinner("Cooking the recommendations for SWOT analysis..."):
                 try:
                     resp = requests.post(f"{BASE_URL}/swot/analysis", json=swot_payload)
                     resp.raise_for_status()
@@ -410,7 +411,7 @@ def render_swot_section():
                 except Exception as e:
                     st.error(f"Unexpected Error: {e}")
         else:
-            st.warning("Please enter at least one item in any SWOT category.")
+            st.warning("We need to know at least one SWOT category to proceed!!")
 
     st.session_state.swot_payload = swot_payload
     return swot_payload
@@ -489,12 +490,13 @@ def render_challenge_section(swot_input, trend_input):
                             "swot": swot_input,
                             "trends": trend_input
                         }
+
                         
-                        with st.spinner("🎯 AI is evaluating challenge complexity and risk factors..."):
+                        with st.spinner("Calculating risk score..."):
                             try:
                                 resp = requests.post(f"{BASE_URL}/challenge/evaluate", json=payload)
-                                resp.raise_for_status()
                                 response_data = resp.json()
+                                st.write(response_data)
                                 ch["risk_score"] = response_data.get("risk_score", "N/A")
                                 
                                 st.success(f"✅ Risk Score: {ch['risk_score']}")
@@ -508,7 +510,7 @@ def render_challenge_section(swot_input, trend_input):
                             except Exception as e:
                                 st.error(f"Unexpected Error: {e}")
                     else:
-                        st.warning("Please fill in at least the title and description.")
+                        st.warning("We can't move forward without a title and description.")
             
             with col_remove:
                 if len(st.session_state.challenges) > 1:
@@ -534,7 +536,7 @@ def render_challenge_section(swot_input, trend_input):
         ]
         
         if valid_challenges:
-            with st.spinner("💭 AI is generating strategic recommendations based on challenge analysis..."):
+            with st.spinner("Just a moment, generating strategic recommendations..."):
                 try:
                     payload = {
                         "challenges": valid_challenges,
@@ -591,7 +593,7 @@ def render_vision_section():
             "tone": st.session_state.get("tone", "coach")
         }
 
-        with st.spinner("🔮 AI is analyzing vision clarity, impact, and strategic alignment..."):
+        with st.spinner("We're analyzing your insights — this won't take long!"):
             try:
                 resp = requests.post(f"{BASE_URL}/blueprint/vision", json=payload)
                 resp.raise_for_status()
@@ -650,7 +652,7 @@ def render_vision_section():
             finally:
                 st.session_state.run_analysis = False
     elif st.session_state.run_analysis:
-        st.warning("Please enter a valid vision statement.")
+        st.warning("Let's know about your vision first!")
         st.session_state.run_analysis = False
 
 # --- Render Strategic Theme Input ---
@@ -688,7 +690,7 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
         ]
 
         if not valid_themes:
-            st.warning("Please enter at least one valid strategic theme with title and description.")
+            st.warning("We are missing something in one of your strategic themes!! Please ensure all fields are filled out.")
             return
 
         valid_challenges = [
@@ -707,7 +709,7 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
         payload = {
             "themes": valid_themes,
             "context": {
-                "vision_statement": vision_input.strip() if vision_input else "",
+                "vision": vision_input.strip() if vision_input else "",
                 "swot": {
                     "strengths": [s.strip() for s in swot_input.get("strengths", []) if s.strip()],
                     "weaknesses": [w.strip() for w in swot_input.get("weaknesses", []) if w.strip()],
@@ -721,13 +723,13 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
                 "customers": st.session_state.identity_inputs.get("customers", "").strip(),
                 "value_proposition": st.session_state.identity_inputs.get("value_proposition", "").strip(),
                 "competitors": st.session_state.competitors,
-                "trends": st.session_state.trend_summary,
+                "trends": st.session_state.trend_summary if st.session_state.trend_summary else "",
                 "capabilities": st.session_state.capabilities,
             },
             "tone": st.session_state.get("tone", "coach"),
         }
 
-        with st.spinner("🎯 AI is conducting strategic theme analysis and identifying gaps..."):
+        with st.spinner("We're conducting strategic theme analysis and identifying gaps..."):
             try:
                 resp = requests.post(f"{BASE_URL}/strategic-theme2/combined-analysis", json=payload)
                 resp.raise_for_status()
@@ -831,7 +833,7 @@ def render_capabilities_section():
         
         payload = {"capabilities": differentiating_caps}
 
-        with st.spinner("🔍 AI is analyzing differentiating capabilities and competitive advantages..."):
+        with st.spinner("We are analyzing differentiating capabilities and competitive advantages..."):
             try:
                 resp = requests.post(f"{BASE_URL}/differentiation/analyze", json=payload)
                 resp.raise_for_status()
@@ -858,7 +860,6 @@ def render_capabilities_section():
 
 # --- Render Business Goals Input ---
 def render_business_goals_section():
-    st.warning("⚠️ Business Goals Input is under development and may not be fully functional yet.")
     st.header("🏆 Business Goals Input")
     
     if st.button("➕ Add New Business Goal"):
@@ -887,132 +888,137 @@ def render_business_goals_section():
             col1, col2 = st.columns(2)
             
             with col1:
-                goal["title"] = st.text_input(
+                st.session_state.business_goals[i]["title"] = st.text_input(
                     "Goal Title",
-                    value=goal.get("title", ""),
+                    value=st.session_state.business_goals[i].get("title", ""),
                     key=f"goal_title_{i}",
                     placeholder="Enter goal title"
                 )
-                
-                goal["description"] = st.text_area(
+
+                st.session_state.business_goals[i]["description"] = st.text_area(
                     "Goal Description",
-                    value=goal.get("description", ""),
+                    value=st.session_state.business_goals[i].get("description", ""),
                     key=f"goal_desc_{i}",
                     height=100,
                     placeholder="Enter detailed description of the goal"
                 )
-                
-                goal["strategic_themes"] = st.multiselect(
+
+                theme = []
+                for theme_name in st.session_state.strategic_themes:
+                    if theme_name["name"].strip():
+                        theme.append(theme_name["name"].strip())
+
+                st.session_state.business_goals[i]["strategic_themes"] = st.multiselect(
                     "What Strategic Themes is this business goal tied to?",
-                    options=theme_options,
-                    default=goal.get("strategic_themes", []),
+                    options=theme,
+                    default=st.session_state.business_goals[i].get("strategic_themes", theme[0] if theme else []),
                     key=f"goal_themes_{i}"
                 )
-                
-                goal["owner"] = st.selectbox(
+
+                st.session_state.business_goals[i]["owner"] = st.selectbox(
                     "Goal Owner",
                     options=["Ash", "Mat", "Brad", "Smith"],
-                    index=["Ash", "Mat", "Brad", "Smith"].index(goal.get("owner", "Ash")),
+                    index=["Ash", "Mat", "Brad", "Smith"].index(st.session_state.business_goals[i].get("owner", "Ash")),
                     key=f"goal_owner_{i}"
                 )
-                
-                goal["funding"] = st.number_input(
+
+                st.session_state.business_goals[i]["funding"] = st.number_input(
                     "Funding Allocated (in $)",
                     min_value=0,
-                    value=goal.get("funding", 0),
+                    value=st.session_state.business_goals[i].get("funding", 0),
                     step=1000,
                     key=f"goal_funding_{i}"
                 )
-                
-                goal["business_function"] = st.selectbox(
+
+                st.session_state.business_goals[i]["business_function"] = st.selectbox(
                     "Assign to Business Function(s)",
                     options=["IT", "Sales", "Marketing", "Operations"],
-                    index=["IT", "Sales", "Marketing", "Operations"].index(goal.get("business_function", "IT")),
+                    index=["IT", "Sales", "Marketing", "Operations"].index(st.session_state.business_goals[i].get("business_function", "IT")),
                     key=f"goal_function_{i}"
                 )
                 
             with col2:
-                goal["term"] = st.selectbox(
+                st.session_state.business_goals[i]["term"] = st.selectbox(
                     "Is this a Long-term or Short-term goal?",
                     options=["Long-term", "Short-term"],
-                    index=["Long-term", "Short-term"].index(goal.get("term", "Long-term")),
+                    index=["Long-term", "Short-term"].index(st.session_state.business_goals[i].get("term", "Long-term")),
                     key=f"goal_term_{i}"
                 )
-                
-                goal["start_date"] = st.text_input(
+
+                st.session_state.business_goals[i]["start_date"] = st.text_input(
                     "Start Date and Time (YYYY-MM-DD HH:MM)",
-                    value=goal.get("start_date", datetime.now().strftime("%Y-%m-%d %H:%M")),
+                    value=st.session_state.business_goals[i].get("start_date", datetime.now().strftime("%Y-%m-%d %H:%M")),
                     key=f"goal_start_{i}",
                     placeholder="YYYY-MM-DD HH:MM"
                 )
-                
-                goal["end_date"] = st.text_input(
+
+                st.session_state.business_goals[i]["end_date"] = st.text_input(
                     "End Date and Time (YYYY-MM-DD HH:MM)",
-                    value=goal.get("end_date", datetime.now().strftime("%Y-%m-%d %H:%M")),
+                    value=st.session_state.business_goals[i].get("end_date", datetime.now().strftime("%Y-%m-%d %H:%M")),
                     key=f"goal_end_{i}",
                     placeholder="YYYY-MM-DD HH:MM"
                 )
-                
-                goal["priority"] = st.selectbox(
+
+                st.session_state.business_goals[i]["priority"] = st.selectbox(
                     "Goal Priority",
                     options=["High", "Medium", "Low"],
-                    index=["High", "Medium", "Low"].index(goal.get("priority", "Medium")),
+                    index=["High", "Medium", "Low"].index(st.session_state.business_goals[i].get("priority", "Medium")),
                     key=f"goal_priority_{i}"
                 )
-                
-                goal["progress"] = st.number_input(
+
+                st.session_state.business_goals[i]["progress"] = st.number_input(
                     "Goal Progress (%)",
                     min_value=0,
                     max_value=100,
-                    value=goal.get("progress", 0),
+                    value=st.session_state.business_goals[i].get("progress", 0),
                     step=1,
                     key=f"goal_progress_{i}"
                 )
-                
-                goal["specific_strategic"] = st.selectbox(
+
+                st.session_state.business_goals[i]["specific_strategic"] = st.selectbox(
                     "Is this goal both specific and strategic?",
                     options=["Yes", "Only Specific", "Only Strategic"],
-                    index=["Yes", "Only Specific", "Only Strategic"].index(goal.get("specific_strategic", "Yes")),
+                    index=["Yes", "Only Specific", "Only Strategic"].index(st.session_state.business_goals[i].get("specific_strategic", "Yes")),
                     key=f"goal_specific_{i}"
                 )
-                
-                goal["resources_available"] = st.selectbox(
+
+                st.session_state.business_goals[i]["resources_available"] = st.selectbox(
                     "Do we possess the necessary resources (human and material)?",
                     options=["Yes", "No"],
-                    index=["Yes", "No"].index(goal.get("resources_available", "Yes")),
+                    index=["Yes", "No"].index(st.session_state.business_goals[i].get("resources_available", "Yes")),
                     key=f"goal_resources_{i}"
                 )
-                
-                if goal["resources_available"] == "No":
-                    goal["resources_explanation"] = st.text_area(
-                        "If no, please explain",
-                        value=goal.get("resources_explanation", ""),
-                        key=f"goal_res_explain_{i}",
-                        height=100,
-                        placeholder="Explain resource gaps"
-                    )
-                
-                goal["env_social_issues"] = st.selectbox(
+
+                st.session_state.business_goals[i]["resources_explanation"] = st.text_area(
+                    "If no, please explain",
+                    value=st.session_state.business_goals[i].get("resources_explanation", ""),
+                    key=f"goal_res_explain_{i}",
+                    height=100,
+                    placeholder="Explain resource gaps"
+                )
+
+                st.session_state.business_goals[i]["env_social_issues"] = st.selectbox(
                     "Are there any environmental and social issues to address?",
                     options=["Yes", "No"],
-                    index=["Yes", "No"].index(goal.get("env_social_issues", "No")),
+                    index=["Yes", "No"].index(st.session_state.business_goals[i].get("env_social_issues", "No")),
                     key=f"goal_env_social_{i}"
                 )
                 
-                if goal["env_social_issues"] == "Yes":
-                    goal["env_social_details"] = st.text_area(
-                        "What specific environmental and social issues need to be addressed, and how might they impact the goal?",
-                        value=goal.get("env_social_details", ""),
-                        key=f"goal_env_details_{i}",
-                        height=100,
-                        placeholder="Describe issues and their impact"
-                    )
-                    goal["env_social_impact"] = st.selectbox(
-                        "Environmental/Social Impact",
-                        options=["High", "Medium", "Low"],
-                        index=["High", "Medium", "Low"].index(goal.get("env_social_impact", "Low")),
-                        key=f"goal_env_impact_{i}"
-                    )
+
+                st.session_state.business_goals[i]["env_social_details"] = st.text_area(
+                    "What specific environmental and social issues need to be addressed, and how might they impact the goal?",
+                    value=st.session_state.business_goals[i].get("env_social_details", ""),
+                    key=f"goal_env_details_{i}",
+                    height=100,
+                    placeholder="Describe issues and their impact"
+                )
+
+                st.session_state.business_goals[i]["env_social_impact"] = st.selectbox(
+                    "Environmental/Social Impact",
+                    options=["High", "Medium", "Low"],
+                    index=["High", "Medium", "Low"].index(st.session_state.business_goals[i].get("env_social_impact", "Low")),
+                    key=f"goal_env_impact_{i}"
+                )
             
             if st.button("➕ Additional Information", key=f"goal_additional_{i}"):
                 goal["show_additional"] = not goal.get("show_additional", False)
@@ -1020,79 +1026,94 @@ def render_business_goals_section():
             
             if goal.get("show_additional", False):
                 st.markdown("### Additional Information")
-                goal["risks_challenges"] = st.text_area(
+                st.session_state.business_goals[i]["risks_challenges"] = st.text_area(
                     "Are there any potential risks and challenges that could hinder our progress toward the goal?",
-                    value=goal.get("risks_challenges", ""),
+                    value=st.session_state.business_goals[i].get("risks_challenges", ""),
                     key=f"goal_risks_{i}",
                     height=100,
                     placeholder="Describe risks and challenges"
                 )
-                goal["risks_impact"] = st.selectbox(
+                st.session_state.business_goals[i]["risks_impact"] = st.selectbox(
                     "Risks and Challenges Impact",
                     options=["High", "Medium", "Low"],
-                    index=["High", "Medium", "Low"].index(goal.get("risks_impact", "Low")),
+                    index=["High", "Medium", "Low"].index(st.session_state.business_goals[i].get("risks_impact", "Low")),
                     key=f"goal_risks_impact_{i}"
                 )
-                
-                goal["regulatory_compliance"] = st.text_area(
+
+                st.session_state.business_goals[i]["regulatory_compliance"] = st.text_area(
                     "Is there any regulatory compliance to address to ensure goal achievement?",
-                    value=goal.get("regulatory_compliance", ""),
+                    value=st.session_state.business_goals[i].get("regulatory_compliance", ""),
                     key=f"goal_regulatory_{i}",
                     height=100,
                     placeholder="Describe regulatory requirements"
                 )
-                goal["regulatory_impact"] = st.selectbox(
+                st.session_state.business_goals[i]["regulatory_impact"] = st.selectbox(
                     "Regulatory Compliance Impact",
                     options=["High", "Medium", "Low"],
-                    index=["High", "Medium", "Low"].index(goal.get("regulatory_impact", "Low")),
+                    index=["High", "Medium", "Low"].index(st.session_state.business_goals[i].get("regulatory_impact", "Low")),
                     key=f"goal_regulatory_impact_{i}"
                 )
-                
-                goal["cultural_realignment"] = st.text_area(
+
+                st.session_state.business_goals[i]["cultural_realignment"] = st.text_area(
                     "What cultural realignment is necessary to bolster the goal's success?",
-                    value=goal.get("cultural_realignment", ""),
+                    value=st.session_state.business_goals[i].get("cultural_realignment", ""),
                     key=f"goal_cultural_{i}",
                     height=100,
                     placeholder="Describe cultural changes needed"
                 )
-                goal["cultural_impact"] = st.selectbox(
+                st.session_state.business_goals[i]["cultural_impact"] = st.selectbox(
                     "Cultural Realignment Impact",
                     options=["High", "Medium", "Low"],
-                    index=["High", "Medium", "Low"].index(goal.get("cultural_impact", "Low")),
+                    index=["High", "Medium", "Low"].index(st.session_state.business_goals[i].get("cultural_impact", "Low")),
                     key=f"goal_cultural_impact_{i}"
                 )
-                
-                goal["change_management"] = st.text_area(
+
+                st.session_state.business_goals[i]["change_management"] = st.text_area(
                     "What change/transformation should be addressed to achieve this goal? (Change Management)",
-                    value=goal.get("change_management", ""),
+                    value=st.session_state.business_goals[i].get("change_management", ""),
                     key=f"goal_change_{i}",
                     height=100,
                     placeholder="Describe change management needs"
                 )
-                goal["change_impact"] = st.selectbox(
+                st.session_state.business_goals[i]["change_impact"] = st.selectbox(
                     "Change Management Impact",
                     options=["High", "Medium", "Low"],
-                    index=["High", "Medium", "Low"].index(goal.get("change_impact", "Low")),
+                    index=["High", "Medium", "Low"].index(st.session_state.business_goals[i].get("change_impact", "Low")),
                     key=f"goal_change_impact_{i}"
                 )
-                
-                goal["learning_development"] = st.text_area(
+
+                st.session_state.business_goals[i]["learning_development"] = st.text_area(
                     "How will learning and development initiatives be integrated to enhance skills and capabilities?",
-                    value=goal.get("learning_development", ""),
+                    value=st.session_state.business_goals[i].get("learning_development", ""),
                     key=f"goal_learning_{i}",
                     height=100,
                     placeholder="Describe learning and development plans"
                 )
-                goal["learning_impact"] = st.selectbox(
+
+                st.session_state.business_goals[i]["learning_impact"] = st.selectbox(
                     "Learning and Development Impact",
                     options=["High", "Medium", "Low"],
-                    index=["High", "Medium", "Low"].index(goal.get("learning_impact", "Low")),
+                    index=["High", "Medium", "Low"].index(st.session_state.business_goals[i].get("learning_impact", "Low")),
                     key=f"goal_learning_impact_{i}"
                 )
-                
-                goal["other_detail"] = st.text_area(
+
+                st.session_state.business_goals[i]["existing_capabilities_to_enhance"] = st.selectbox(
+                    "Does this goal require enhancing existing capabilities to achieve it?",
+                    options=["Yes", "No"],
+                    index=["Yes", "No"].index(st.session_state.business_goals[i].get("existing_capabilities_to_enhance", "No")),
+                    key=f"goal_existing_capabilities_{i}"
+                )
+
+                st.session_state.business_goals[i]["new_capabilities_needed"] = st.selectbox(
+                    "Does this goal require adding new capabilities to achieve it?",
+                    options=["Yes", "No"],
+                    index=["Yes", "No"].index(st.session_state.business_goals[i].get("new_capabilities_needed", "No")),
+                    key=f"goal_new_capabilities_{i}"
+                )
+
+                st.session_state.business_goals[i]["other_detail"] = st.text_area(
                     "Other Detail (Optional)",
-                    value=goal.get("other_detail", ""),
+                    value=st.session_state.business_goals[i].get("other_detail", ""),
                     key=f"goal_other_{i}",
                     height=100,
                     placeholder="Enter any additional details"
@@ -1104,74 +1125,100 @@ def render_business_goals_section():
                     st.rerun()
 
     if st.button("💡 Business Goal Recommendations"):
-        valid_goals = [
-            {
-                "potential_risks_and_challenges": {
-                    "answer": goal["risks_challenges"].strip(),
-                    "impact": goal["risks_impact"]
+        valid_goals = []
+
+        for goal in st.session_state.business_goals:
+            temp_goal = {
+                "title": goal["title"].strip(),
+                "description": goal["description"].strip(),
+                "related_strategic_theme": goal["strategic_themes"][0],
+                "priority": goal["priority"],
+                "resource_readiness": goal["resources_available"],
+                "assigned_functions": [goal["business_function"]],
+                "duration": goal["term"],
+                "impact_ratings": {
+                    "risks": goal["risks_impact"],
+                    "compliance": goal["regulatory_impact"],
+                    "culture": goal["cultural_impact"],
+                    "change_management": goal["change_impact"],
+                    "l_and_d": goal["learning_impact"],
                 },
-                "regulatory_compliance": {
-                    "answer": goal["regulatory_compliance"].strip(),
-                    "impact": goal["regulatory_impact"]
-                },
-                "cultural_realignment": {
-                    "answer": goal["cultural_realignment"].strip(),
-                    "impact": goal["cultural_impact"]
-                },
-                "change_management": {
-                    "answer": goal["change_management"].strip(),
-                    "impact": goal["change_impact"]
-                },
-                "learning_and_development": {
-                    "answer": goal["learning_development"].strip(),
-                    "impact": goal["learning_impact"]
-                }
+                "esg_issues": goal["env_social_issues"],
+                "new_capabilities_needed": goal["new_capabilities_needed"],
+                "existing_capabilities_to_enhance": goal["existing_capabilities_to_enhance"]
             }
-            for goal in st.session_state.business_goals
-            if goal.get("show_additional", False) and any([
-                goal["risks_challenges"].strip(),
-                goal["regulatory_compliance"].strip(),
-                goal["cultural_realignment"].strip(),
-                goal["change_management"].strip(),
-                goal["learning_development"].strip()
-            ])
-        ]
-        
+            valid_goals.append(temp_goal)
+
         if not valid_goals:
-            st.warning("Please provide additional information for at least one goal to get recommendations.")
+            st.warning("We need to know more about your goals to provide recommendations.")
             return
         
-        payload = valid_goals[0]  # Assuming one goal for simplicity; adjust if multiple goals needed
-        
-        with st.spinner("🎯 AI is analyzing business goal feasibility and strategic alignment..."):
+        payload = {
+            "vision": st.session_state.vision_input.strip() if st.session_state.vision_input else "",
+            "strategic_themes": st.session_state.strategic_themes,
+            "challenges": st.session_state.challenges,
+            "tone": st.session_state.get("tone", "coach"),
+            "goals": valid_goals
+        }
+
+        with st.spinner("We're studying your business goal — this won't take long!"):
             try:
-                resp = requests.post(f"{BASE_URL}/business-goal/analyze", json=payload)
-                resp.raise_for_status()
+                resp = requests.post(f"{BASE_URL}/business-goal/analyze2", json=payload)
+
                 response_data = resp.json()
-                
-                st.subheader("Business Goal Recommendations")
-                with st.container():
-                    if response_data.get("error"):
-                        st.error(f"API Error: {response_data['error']}")
-                        return
+
+                if response_data["error"]:
+                    st.error(f"X {response_data['error']}")
+                else:       
+                    st.subheader("Business Goal Recommendations")
+                    with st.container():
+                        st.markdown("### Alignment Summary")
+                        st.write(response_data.get("alignment_summary"))
                     
-                    st.markdown("### Risks Summary")
-                    st.write(response_data.get("risks_summary", "N/A"))
+                    with st.container():
+                        if "smart_suggestions" in response_data:
+                            st.markdown("### SMART Suggestions")
+                            for suggestion in response_data["smart_suggestions"]:
+                                st.write(f"Title: {suggestion.get('title', "looks fine")}")
+                                st.write(f"Description: {suggestion.get('description', "nicely stated")}\n")
+
+                    with st.container():
+                        if "strategic_priorities" in response_data:
+                            st.markdown("### Strategic Priorities")
+                            for priority in response_data["strategic_priorities"]:
+                                st.write(f"- {priority}")
                     
-                    st.markdown("### Regulatory Compliance Summary")
-                    st.write(response_data.get("regulatory_compliance_summary", "N/A"))
+                    with st.container():
+                        if "strategic_fit_scores" in response_data:
+                            st.markdown("### Strategic Fit Scores")
+                            for score in response_data["strategic_fit_scores"]:
+                                st.write(f"##### **{score.get('goal_title', 'N/A')}**")
+                                st.write(f"Score: {score.get('score', 'N/A')}")
+                                st.write(f"Explanation: {score.get('comment', 'N/A')}")
+
+                    with st.container():
+                        if "execution_watchouts" in response_data:
+                            st.markdown("### Execution Watchouts")
+                            for watchout in response_data["execution_watchouts"]:
+                                st.write(f"- {watchout}")
                     
-                    st.markdown("### Roadblocks Summary")
-                    st.write(response_data.get("roadblocks_summary", "N/A"))
-                    
-                    st.markdown("### Culture Realignment Summary")
-                    st.write(response_data.get("culture_realignment_summary", "N/A"))
-                    
-                    st.markdown("### Change Management Summary")
-                    st.write(response_data.get("change_management_summary", "N/A"))
-                    
-                    st.markdown("### Learning and Development Summary")
-                    st.write(response_data.get("learning_and_development_summary", "N/A"))
+                    def format_value(val):
+                        if isinstance(val, list):
+                            return ", ".join(map(str, val))
+                        return str(val) if val is not None else "N/A"
+
+                    with st.container():
+                        if "dashboard_insights" in response_data:
+                            di = response_data["dashboard_insights"]
+                            st.markdown("### Dashboard Insights")
+                            st.markdown("**Risk**: " + format_value(di.get("risk", "No risk identified")))
+                            st.markdown("**Regulatory Compliance**: " + format_value(di.get("regulatory_compliances", "Just fine")))
+                            st.markdown("**Roadblocks**: " + format_value(di.get("roadblocks", "Smooth sailing")))
+                            st.markdown("**Talent**: " + format_value(di.get("talent", "Looking good")))
+                            st.markdown("**Cultural Realignment**: " + format_value(di.get("cultural_realignment", "Perfectly aligned")))
+                            st.markdown("**Change Management**: " + format_value(di.get("change_management", "manageable")))
+                            st.markdown("**Learning and Development**: " + format_value(di.get("learning_and_development", "on track")))
+
                     
             except requests.exceptions.HTTPError as e:
                 error_response = e.response.json() if e.response else "No response details"
@@ -1204,7 +1251,7 @@ def render_chatbot_section():
             "history": st.session_state.chat_history
         }
         
-        with st.spinner("🤖 AI is processing your question and generating a thoughtful response..."):
+        with st.spinner("Let me think..."):
             try:
                 resp = requests.post(f"{BASE_URL}/chatbot/chatbot", json=payload)
                 resp.raise_for_status()

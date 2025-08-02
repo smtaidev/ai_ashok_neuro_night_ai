@@ -78,10 +78,7 @@ async def assess_challenge_risk(request: ChallengeEvaluationRequest = Body(..., 
     }
   })
 ):
-    try:
-        return await evaluate_challenge_risk(request)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error calculating challenge risk: {str(e)}")
+    return await evaluate_challenge_risk(request)
 
 @router.post(
     "/recommendations",

@@ -46,13 +46,17 @@ SWOT Context:
 
 Trends Context:
 """
-
     for section_name, items in trends.dict().items():
         if items:
             prompt += f"\n--- {section_name.replace('_', ' ').title()} ---\n"
             for item in items:
-                # print(item)
-                prompt += f"Q: {item['question']}\nA: {item['answer']}\nImpact: {item['impact']}\n"
+                if isinstance(item, dict):
+                    q = item.get("question", "N/A")
+                    a = item.get("answer", "N/A")
+                    impact = item.get("impact", "N/A")
+                    prompt += f"Q: {q}\nA: {a}\nImpact: {impact}\n"
+                else:
+                    prompt += f"Note: Unexpected item format: {item}\n"
 
     prompt += "\n\nReturn ONLY in this format:\nRISK SCORE: [1–100]"
 
@@ -99,11 +103,17 @@ async def generate_challenge_recommendations(
     prompt += f"- Threats: {', '.join(swot.threats)}\n"
 
     prompt += "\nTRENDS:\n"
-    for section, items in trends.dict().items():
+    for section_name, items in trends.dict().items():
         if items:
-            prompt += f"\n--- {section.replace('_', ' ').title()} ---\n"
+            prompt += f"\n--- {section_name.replace('_', ' ').title()} ---\n"
             for item in items:
-                prompt += f"Q: {item['question']}\nA: {item['answer']}\nImpact: {item['impact']}\n"
+                if isinstance(item, dict):
+                    q = item.get("question", "N/A")
+                    a = item.get("answer", "N/A")
+                    impact = item.get("impact", "N/A")
+                    prompt += f"Q: {q}\nA: {a}\nImpact: {impact}\n"
+                else:
+                    prompt += f"Note: Unexpected item format: {item}\n"
 
     prompt += """
 Now, based on the given challenges, SWOT, and Trend analysis above — generate a concise and strategic list of recommendations.

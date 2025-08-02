@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
+from ..models.strategic_theme2_model import ScoredChallengeInput, ThemeItem
 
 # --- Sub-Models for the Request ---
 
@@ -11,7 +12,6 @@ class ImpactRatings(BaseModel):
     culture: Literal["High", "Medium", "Low"]
     change_management: Literal["High", "Medium", "Low"]
     l_and_d: Literal["High", "Medium", "Low"]
-    capabilities: Literal["High", "Medium", "Low"]
 
 class GoalItem(BaseModel):
     title: str
@@ -30,17 +30,43 @@ class GoalItem(BaseModel):
 
 class BusinessGoalAnalysisRequest(BaseModel):
     vision: str
-    strategic_themes: List[str]
-    challenges: List[str]
-    tone: Optional[Literal["coach", "advisor", "challenger"]] = "advisor"
+    strategic_themes: List[ThemeItem]
+    challenges: List[ScoredChallengeInput]
+    tone: Optional[Literal["coach", "advisor", "challenger"]] = "coach"
     goals: List[GoalItem]
 
     class Config:
         json_schema_extra = {
             "example": {
                 "vision": "To be the most innovative and sustainable tech solutions provider in emerging markets.",
-                "strategic_themes": ["Digital Transformation", "Sustainable Growth", "Customer Centricity"],
-                "challenges": ["Talent retention in tech roles", "Navigating international compliance", "Lack of unified onboarding process"],
+                "strategic_themes": [
+                                {
+                                "name": "Digital Transformation",
+                                "description": "Modernize internal systems and customer-facing platforms to improve agility and user experience."
+                                },
+                                {
+                                "name": "Customer Centricity",
+                                "description": "Enhance customer relationships by personalizing services and streamlining engagement processes."
+                                }
+                            ],
+                "challenges": [
+                        {
+                            "title": "Improve Talent Retention",
+                            "category": "HR",
+                            "impact_on_business": "High",
+                            "ability_to_address": "Medium",
+                            "description": "Attrition in key engineering roles has increased over the past year.",
+                            "risk_score": 80
+                        },
+                        {
+                            "title": "Ensure GDPR Compliance",
+                            "category": "Regulatory",
+                            "impact_on_business": "High",
+                            "ability_to_address": "High",
+                            "description": "New products must comply with GDPR to avoid penalties.",
+                            "risk_score": 90
+                        }
+                    ],
                 "tone": "advisor",
                 "goals": [
                     {

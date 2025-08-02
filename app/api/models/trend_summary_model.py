@@ -6,7 +6,7 @@ from ..models.strategic_theme2_model import Capability
 
 # Validating the single question-answer-impact structure 
 class TrendAnswer(BaseModel):
-    question: str
+    question: Optional[str] = None
     answer: Optional[str] = None
     impact: Optional[str] = None  # Expected values: 'High', 'Medium', 'Low'
 
