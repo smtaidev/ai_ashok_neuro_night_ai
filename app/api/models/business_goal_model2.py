@@ -12,6 +12,7 @@ class ImpactRatings(BaseModel):
     culture: Literal["High", "Medium", "Low"]
     change_management: Literal["High", "Medium", "Low"]
     l_and_d: Literal["High", "Medium", "Low"]
+    capabilities: Optional[Literal["High", "Medium", "Low"]]
 
 class GoalItem(BaseModel):
     title: str
@@ -103,7 +104,7 @@ class BusinessGoalAnalysisRequest(BaseModel):
                             "culture": "Medium",
                             "change_management": "Medium",
                             "l_and_d": "Medium",
-                            "capabilities": "No"
+                            "capabilities": "High"
                         },
                         "esg_issues": "No",
                         "new_capabilities_needed": "No",
