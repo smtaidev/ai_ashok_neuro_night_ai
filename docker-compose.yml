@@ -8,7 +8,7 @@ services:
     container_name: clarhet-ai-api
     ports:
       - "8027:8027"
-      - "8501:8501"
+      - "8502:8502"
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - GOOGLE_API_KEY=${GOOGLE_API_KEY}
@@ -23,7 +23,7 @@ services:
       - clarhet-network
     command: >
       sh -c "cd /app && uvicorn main:app --host 0.0.0.0 --port 8027 &
-             cd /app && streamlit run frontend.py --server.port 8501 --server.address 0.0.0.0 --server.headless true"
+             cd /app && streamlit run frontend.py --server.port 8502 --server.address 0.0.0.0 --server.headless true"
 
   # Optional: Add a reverse proxy (nginx)
   nginx:
