@@ -72,7 +72,6 @@ async def _call_openai_for_json(system_prompt: str, user_prompt: str) -> str:
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"OpenAI API call failed: {e}")
 
-# --- Individual Service Functions (with tone injection) ---
 
 async def generate_gap_detection(request: GapDetectionRequest, tone_guideline: str) -> GapDetectionResponse:
     system_prompt = f"""
@@ -113,6 +112,8 @@ async def generate_wording_suggestions(request: WordingSuggestionsRequest, tone_
     if not data.get("is_valid"):
         raise HTTPException(status_code=400, detail=data.get("error_message", "Invalid input for wording suggestions."))
     return WordingSuggestionsResponse(**data.get("analysis", {}))
+
+
 
 async def generate_goal_mapping(request: GoalMappingRequest, tone_guideline: str) -> GoalMappingResponse:
     system_prompt = f"""

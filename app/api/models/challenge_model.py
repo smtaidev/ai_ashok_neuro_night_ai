@@ -22,10 +22,10 @@ class ChallengeEvaluationRequest(BaseModel):
     trends: TrendDataInput
 
 class ChallengeRiskScoreResponse(BaseModel):
-    risk_score: int  # 1 to 100
+    risk_score: int  
 
 class ChallengeRecommendationRequest(BaseModel):
-    challenges: List[ScoredChallengeInput]  # 1 to 5 items
+    challenges: List[ScoredChallengeInput] 
     swot: SWOTDataInput
     trends: TrendDataInput
 

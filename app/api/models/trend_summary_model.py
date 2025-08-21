@@ -8,9 +8,9 @@ from ..models.strategic_theme2_model import Capability
 class TrendAnswer(BaseModel):
     question: Optional[str] = None
     answer: Optional[str] = None
-    impact: Optional[str] = None  # Expected values: 'High', 'Medium', 'Low'
+    impact: Optional[str] = None
 
-# Validating the main INPUT model. The JSON from the frontend must match this structure.
+# Validating the main INPUT model
 class TrendDataInput(BaseModel):
     customer_insights: List[TrendAnswer] = []
     competitor_landscape: List[TrendAnswer] = []
@@ -32,15 +32,14 @@ class TrendDataInput(BaseModel):
 
 
 
-
-# This is the main OUTPUT model. Our API will guarantee the response matches this structure.
+# This is the main OUTPUT model
 class TrendSummaryResponse(BaseModel):
     key_opportunities: str
     strengths : str
     significant_risks: str
     challenges: str
     strategic_recommendations: str
-    irrelevant_answers: List[str] = []  # Add this line
+    irrelevant_answers: List[str] = []  
 
 
 # Validating the combined response model that includes both summary and top trends

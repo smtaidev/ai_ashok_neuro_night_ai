@@ -87,9 +87,8 @@ async def generate_combined_summary_and_trends(data: TrendDataInput) -> TrendCom
     store.last_trend_input = data
     formatted_data = _format_data_for_prompt(data)
 
-    # Get the tone guideline, defaulting to "coach" if tone is not specified or invalid
     tone = data.tone or "coach"
-    tone_guideline = TONE_GUIDELINES.get(tone, TONE_GUIDELINES["coach"])  # Fallback to coach if tone is invalid
+    tone_guideline = TONE_GUIDELINES.get(tone, TONE_GUIDELINES["coach"])  
 
     system_prompt = f"""
         You are an expert business consultant with extensive experience in strategic planning, market trends, and innovation. Your task is to analyze TRENDS ASSESSMENT RAW DATA and deliver insights as a senior consultant would in a real business setting.
@@ -156,24 +155,19 @@ async def generate_combined_summary_and_trends(data: TrendDataInput) -> TrendCom
 
         raw_response = result.choices[0].message.content.strip()
 
-        # Step 1: Parse the main summary, synthesis, and analyst briefing
         parsed_response = _parse_combined_response(raw_response)
 
-        # If parsing failed and an error was set, return immediately
         if parsed_response.error:
             return parsed_response
 
-        # Step 2: Generate radar analysis from the 'on_the_radar' section
         radar_summary, radar_recommendations = await generate_radar_analysis(data)
 
-        # Step 3: Add the radar analysis to the successfully parsed response object
         parsed_response.radar_executive_summary = radar_summary
         parsed_response.radar_recommendation = radar_recommendations
 
         return parsed_response
 
     except Exception as e:
-        # Catch exceptions from the API call or other unexpected errors
         return TrendCombinedResponse(
             summary=TrendSummaryResponse(key_opportunities="", strengths="", significant_risks="", challenges="", strategic_recommendations=""),
             error=f"An error occurred while generating the trend summary: {str(e)}"
@@ -210,7 +204,6 @@ async def generate_radar_analysis(data: TrendDataInput) -> tuple[list[str], list
 
     content = response.choices[0].message.content.strip()
 
-    # Parse sections based on headers
     summary_lines = []
     recommendation_lines = []
     current_section = None

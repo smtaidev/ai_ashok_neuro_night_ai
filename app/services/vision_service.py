@@ -80,7 +80,7 @@ async def process_vision(request: VisionInput) -> Union[VisionResponse, Dict]:
                 {"role": "user", "content": user_prompt}
             ],
             temperature=0.3,
-            max_tokens=1200  # Increased max_tokens for a more detailed response
+            max_tokens=1200  
         )
  
         content = response.choices[0].message.content.strip()
@@ -88,12 +88,9 @@ async def process_vision(request: VisionInput) -> Union[VisionResponse, Dict]:
  
         # Check the validation flag from the AI
         if not data.get("is_valid"):
-            # Return the error dictionary
             return {"error": data.get("error_message", "Input was deemed irrelevant for analysis.")}
        
-        # On success, return the Pydantic model from the nested 'analysis' key
         return VisionResponse(**data.get("analysis", {}))
  
     except Exception as e:
-        # Handle cases where the API call itself or parsing fails
         return {"error": f"An unexpected error occurred during AI processing: {str(e)}"}

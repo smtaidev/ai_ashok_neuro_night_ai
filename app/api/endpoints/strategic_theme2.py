@@ -4,10 +4,8 @@ from fastapi import APIRouter, Body
 from app.services import strategic_theme2_service as service
 from app.api.models.strategic_theme2_model import CombinedAnalysisRequest, CombinedResponse
  
-# This is the router object that main.py imports
 router = APIRouter()
  
-# Example for the documentation (profile key removed)
 combined_analysis_example = {
   "themes": [
     {

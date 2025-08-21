@@ -28,20 +28,12 @@ async def analyze_goal_portfolio(
     Handles business validation errors gracefully by returning a 200 OK response with an error message in the payload.
     """
     try:
-        # The service function is designed to ALWAYS return a valid BusinessGoalAnalysisResponse object.
-        # In case of validation failure, it populates the 'error' field itself.
-        response = await business_goal_service2.analyze_business_goals(request)
         
-        # --- THIS IS THE KEY CHANGE ---
-        # We NO LONGER check for response.error and raise an exception here.
-        # We simply return the response object as is. FastAPI will serialize it.
-        # If there's an error, the JSON will have the error field populated and other fields
-        # will be empty, exactly as you want. The status code will be 200 OK.
+        response = await business_goal_service2.analyze_business_goals(request)
         return response
 
     except Exception as e:
-        # This 'except' block is now only for TRUE unexpected server errors,
-        # like the AI service being down or a critical bug in the code.
+        
         raise HTTPException(
             status_code=500,
             detail=f"An unexpected internal server error occurred: {str(e)}"

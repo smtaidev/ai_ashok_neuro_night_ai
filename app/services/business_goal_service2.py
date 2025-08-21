@@ -6,7 +6,6 @@ from typing import Dict
 
 from ..core.config import settings
 from ..core.AI_models import MODEL, TEMPERATURE
-# Make sure to import the models
 from ..api.models.business_goal_model2 import BusinessGoalAnalysisRequest, BusinessGoalAnalysisResponse, DashboardInsights
 from ..utils.Tone import TONE_GUIDELINES
 
@@ -58,8 +57,7 @@ async def analyze_business_goals(request: BusinessGoalAnalysisRequest) -> Busine
     user_prompt = _format_prompt_for_goal_analysis(request)
     tone_instruction = TONE_GUIDELINES.get(request.tone, TONE_GUIDELINES["advisor"])
 
-    # Define a schema that includes our validation fields
-    # This tells the AI how to structure its response for both validation and analysis
+    
     validation_and_analysis_schema = {
         "type": "object",
         "properties": {
@@ -108,10 +106,9 @@ async def analyze_business_goals(request: BusinessGoalAnalysisRequest) -> Busine
         
         response_data = json.loads(response.choices[0].message.content)
 
-        # --- NEW VALIDATION LOGIC ---
+        #  NEW VALIDATION LOGIC 
         if not response_data.get("is_input_valid"):
             error_msg = response_data.get("validation_error_message", "An input goal was deemed irrelevant for business analysis.")
-            # Return the standard response model with the error field populated
             return BusinessGoalAnalysisResponse(
                 alignment_summary="", smart_suggestions=[], strategic_priorities=[],
                 strategic_fit_scores=[], execution_watchouts=[],
@@ -119,7 +116,6 @@ async def analyze_business_goals(request: BusinessGoalAnalysisRequest) -> Busine
                 error=error_msg
             )
         
-        # If valid, parse the nested 'analysis' object
         analysis_payload = response_data.get("analysis")
         if not analysis_payload:
              raise ValueError("AI returned a valid flag but no analysis payload.")
@@ -128,7 +124,6 @@ async def analyze_business_goals(request: BusinessGoalAnalysisRequest) -> Busine
 
     except Exception as e:
         error_message = f"An error occurred during AI processing: {str(e)}"
-        # Return a valid response model with the error field populated for any exception
         return BusinessGoalAnalysisResponse(
             alignment_summary="", smart_suggestions=[], strategic_priorities=[],
             strategic_fit_scores=[], execution_watchouts=[],

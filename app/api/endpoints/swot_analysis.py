@@ -52,31 +52,3 @@ async def create_swot_analysis(
         )
 
 
-# cutting the get endpoint
-# @router.get(
-#     "/scores",
-#     summary="Get SWOT Scores Only",
-#     tags=["SWOT Analysis"]
-# )
-# async def get_swot_scores():
-#     """
-#     Returns only the AI-estimated percentage scores from the last SWOT analysis.
-#     Useful for quick score retrieval without full analysis.
-#     """
-#     from app.memory import store
-    
-#     if not hasattr(store, 'last_swot_input') or not store.last_swot_input:
-#         raise HTTPException(
-#             status_code=404,
-#             detail="No SWOT analysis found. Please submit SWOT data first via /analysis endpoint."
-#         )
-    
-#     from app.services.swot_service import generate_swot_analysis
-    
-#     # Generate a new analysis to get fresh AI scores
-#     analysis = await generate_swot_analysis(store.last_swot_input)
-    
-#     return {
-#         "scores": analysis.scores,
-#         "message": "AI-estimated scores from last submitted SWOT data"
-#     }

@@ -3,6 +3,7 @@
 from pydantic import BaseModel
 from typing import List
 
+# Request validation
 class SWOTDataInput(BaseModel):
     strengths: List[str] = []
     weaknesses: List[str] = []
@@ -21,6 +22,7 @@ class SWOTRecommendation(BaseModel):
     opportunities_recommendation: str
     threats_recommendation: str
 
+# Response validation
 class SWOTAnalysisResponse(BaseModel):
     scores: SWOTScore
     recommendations: SWOTRecommendation

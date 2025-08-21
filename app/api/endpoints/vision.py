@@ -18,7 +18,6 @@ async def analyze_vision(
     """
     response = await process_vision(input_data)
 
-    # Return either the successful response or the error as part of the 200 OK response
     if isinstance(response, Dict) and "error" in response:
         return VisionResponse(error=response["error"])
 

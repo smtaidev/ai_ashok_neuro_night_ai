@@ -8,10 +8,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# ✅ Shared OpenAI client
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
-
-# ✅ Reusable model-calling function
 
 MODEL = "gpt-4o"
 TEMPERATURE = 0.5

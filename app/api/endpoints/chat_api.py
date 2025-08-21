@@ -5,14 +5,11 @@ import uuid
 
 router = APIRouter()
 
-# Initialize chat manager
 chat_manager = ChatManager()
 
-# New chatbot endpoint
 @router.post("/chatbot", response_model=ChatbotResponse)
 async def chatbot_endpoint(request: ChatbotRequest):
     try:
-        # Generate or use provided session ID
         session_id = request.session_id if hasattr(request, 'session_id') else str(uuid.uuid4())
         
         response = await chat_manager.chat(

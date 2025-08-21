@@ -21,7 +21,6 @@ with st.sidebar:
 
 BASE_URL = "http://127.0.0.1:8026/api"
 
-# --- Initialize Session State ---
 trend_areas = [
     "customer_insights", "competitor_landscape", "technological_advances",
     "regulatory_and_legal", "economic_considerations", "supply_chain_logistics",
@@ -98,14 +97,12 @@ if "trend_summary" not in st.session_state:
 def render_competitors_section():
     st.header("🏢 Competitors")
 
-    # Ensure correct structure
     if "competitors" not in st.session_state or not isinstance(st.session_state.competitors, list):
         st.session_state.competitors = [{
             "name": "",
             "description": ""
         }]
     elif any(not isinstance(c, dict) for c in st.session_state.competitors):
-        # Fix corrupted format
         st.session_state.competitors = [{
             "name": "",
             "description": ""
@@ -158,10 +155,9 @@ def render_competitors_section():
         else:
             st.warning("⚠️ We need to know more details about your competitors.")
 
-    # Optional: Show stored data for debug
-    # st.write("Session Competitors:", st.session_state.competitors)
+   
 
-# --- Render Identity Inputs ---
+#  Render Identity Inputs 
 def render_identity_section():
     st.header("🏢 Company Identity and Zero-In")
 
@@ -208,7 +204,7 @@ def render_identity_section():
         else:
             st.warning("⚠️ Almost there! Please fill out all fields before submitting.")
 
-# --- Render Trend Input ---
+# Render Trend Input 
 def render_trend_section():
     st.header("🔍 Trends Input")
     
@@ -324,7 +320,7 @@ def render_trend_section():
     return trends_output
 
 
-# --- Render SWOT Input ---
+#  Render SWOT Input 
 def render_swot_section():
     st.header("🧭 SWOT Input")
     
@@ -416,7 +412,7 @@ def render_swot_section():
     st.session_state.swot_payload = swot_payload
     return swot_payload
 
-# --- Render Challenge Input ---
+#  Render Challenge Input 
 def render_challenge_section(swot_input, trend_input):
     st.header("🚨 Challenge Input")
 
@@ -572,7 +568,7 @@ def render_challenge_section(swot_input, trend_input):
         else:
             st.warning("Please evaluate at least one challenge with title and description to get recommendations.")
 
-# --- Render Vision Input ---
+#  Render Vision Input 
 def render_vision_section():
     st.header("🌟 Vision Input")
     
@@ -599,13 +595,11 @@ def render_vision_section():
                 resp.raise_for_status()
                 response_data = resp.json()
 
-                # ✅ Check for error key and handle it gracefully
 
                 if response_data["error"] is not None:
                     st.warning(f"Oops!! something is wrong. {response_data['error']}")
                     st.session_state.run_analysis = False
-                    return  # Exit early
-
+                    return  
                 st.session_state.vision_response = response_data
 
                 st.subheader("📊 Vision Score")
@@ -655,7 +649,7 @@ def render_vision_section():
         st.warning("Let's know about your vision first!")
         st.session_state.run_analysis = False
 
-# --- Render Strategic Theme Input ---
+#  Render Strategic Theme Input 
 def render_strategic_theme_section(vision_input, swot_input, challenges_input):
     st.header("🎯 Strategic Themes")
 
@@ -790,7 +784,7 @@ def render_strategic_theme_section(vision_input, swot_input, challenges_input):
         st.session_state.theme_result_counter = st.session_state.get("theme_result_counter", 0) + 1
 
 
-# --- Render Capabilities Input ---
+#  Render Capabilities Input 
 def render_capabilities_section():
     st.header("🛠️ Capabilities Input")
     
@@ -858,7 +852,7 @@ def render_capabilities_section():
             except Exception as e:
                 st.error(f"Unexpected Error: {e}")
 
-# --- Render Business Goals Input ---
+#  Render Business Goals Input 
 def render_business_goals_section():
     st.header("🏆 Business Goals Input")
     
@@ -1226,7 +1220,7 @@ def render_business_goals_section():
             except Exception as e:
                 st.error(f"Unexpected Error: {e}")
 
-# --- Render Chatbot Section ---
+#  Render Chatbot Section 
 def render_chatbot_section():
     st.header("🤖 Chatbot")
     
@@ -1242,10 +1236,9 @@ def render_chatbot_section():
     
     # Handle send action
     if user_input and user_input.strip():
-        # Add user message to history
         st.session_state.chat_history.append({"role": "user", "message": user_input.strip()})
         
-        # Prepare payload
+        # payload
         payload = {
             "message": user_input.strip(),
             "history": st.session_state.chat_history
@@ -1261,16 +1254,14 @@ def render_chatbot_section():
                 st.session_state.chat_history.append({"role": "assistant", "message": response_data.get("response", "No response received.")})
                 
             except (requests.exceptions.RequestException, ValueError) as e:
-                # Handle any network or JSON errors
                 st.error("Failed to connect to the AI service. Please try again.")
                 st.session_state.chat_history.append({"role": "assistant", "message": "Sorry, I'm having trouble connecting. Please try again!"})
             
-        # Rerun to update UI
         st.rerun()
     elif user_input:
         st.warning("Please enter a non-empty message.")
 
-# --- Main Rendering with Tabs ---
+#  Main Rendering with Tabs 
 tab0, tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8, tab9 = st.tabs(["🏢 Identity", "🛠️ Capabilities", "🔍 Trends", "🧭 SWOT", "🚨 Challenges", "🛠️ Competitors", "🌟 Vision", "🎯 Strategic Themes", "🏆 Business Goals", "🤖 Chatbot"])
 
 with tab0:

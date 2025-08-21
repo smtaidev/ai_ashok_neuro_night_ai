@@ -17,7 +17,6 @@ async def _call_openai_for_json(system_prompt: str, user_prompt: str) -> str:
         )
         return response.choices[0].message.content
     except Exception as e:
-        # Return a JSON string with the validation structure for consistency
         return json.dumps({"is_valid": False, "error_message": f"OpenAI API call failed: {e}"})
  
 async def generate_differentiation_analysis(request: DifferentiationRequest) -> Union[DifferentiationResponse, Dict]:
@@ -25,7 +24,6 @@ async def generate_differentiation_analysis(request: DifferentiationRequest) -> 
     Analyzes a user's capability. If irrelevant, returns an error dict.
     If valid, returns a DifferentiationResponse model.
     """
-    # Define a schema that includes our validation fields
     validation_schema = {
         "type": "object",
         "properties": {
@@ -53,11 +51,9 @@ async def generate_differentiation_analysis(request: DifferentiationRequest) -> 
     raw_response = await _call_openai_for_json(system_prompt, user_prompt)
     data = json.loads(raw_response)
  
-    # Check the validation flag from the AI
     if not data.get("is_valid"):
         return {"error": data.get("error_message", "Input was deemed irrelevant for analysis.")}
    
-    # On success, return the validated Pydantic model from the nested 'analysis' key
     try:
         return DifferentiationResponse(**data.get("analysis", {}))
     except Exception as e:

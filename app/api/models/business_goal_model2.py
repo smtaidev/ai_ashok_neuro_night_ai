@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 from ..models.strategic_theme2_model import ScoredChallengeInput, ThemeItem
 
-# --- Sub-Models for the Request ---
+#  Sub-Models for the Request 
 
 class ImpactRatings(BaseModel):
     risks: Literal["High", "Medium", "Low"]
@@ -27,7 +27,7 @@ class GoalItem(BaseModel):
     new_capabilities_needed: Literal["Yes", "No"]
     existing_capabilities_to_enhance: Literal["Yes", "No"]
 
-# --- Main Request Model ---
+#  Main Request Model
 
 class BusinessGoalAnalysisRequest(BaseModel):
     vision: str
@@ -114,7 +114,7 @@ class BusinessGoalAnalysisRequest(BaseModel):
             }
         }
 
-# --- Sub-Models for the Response ---
+#  Sub-Models for the Response 
 
 class SMARTSuggestion(BaseModel):
     goal_title: str
@@ -135,7 +135,7 @@ class DashboardInsights(BaseModel):
     learning_and_development: List[str]
     capabilities: List[str]
 
-# --- Main Response Model ---
+#  Main Response Model
 
 class BusinessGoalAnalysisResponse(BaseModel):
     alignment_summary: str

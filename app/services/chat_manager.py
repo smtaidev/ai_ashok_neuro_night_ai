@@ -62,10 +62,9 @@ class ChatManager:
         if chat_history is None:
             chat_history = self.user_sessions.get(user_id, [])
         
-        # Build conversation context from history
         history_context = ""
         if chat_history:
-            for item in chat_history[-10:]:  # Keep last 10 messages for context
+            for item in chat_history[-10:]:  
                 if item.get("role") == "user":
                     history_context += f"User: {item.get('message', '')}\n"
                 elif item.get("role") == "assistant":
@@ -76,7 +75,6 @@ class ChatManager:
             system_prompt + "\n" + history_context + f"User: {prompt}\nAI:"
         )
         
-        # Call AI to generate response
         response = await self.ai_service.generate_response(conversation_context)
         
         # Save to in-memory storage
@@ -87,7 +85,6 @@ class ChatManager:
         self.user_sessions[user_id].append({"role": "user", "message": prompt})
         self.user_sessions[user_id].append({"role": "assistant", "message": response})
         
-        # Keep only last 20 messages to prevent memory overflow
         if len(self.user_sessions[user_id]) > 20:
             self.user_sessions[user_id] = self.user_sessions[user_id][-20:]
         

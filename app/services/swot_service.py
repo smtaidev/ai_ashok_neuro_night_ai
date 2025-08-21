@@ -33,7 +33,6 @@ def _format_swot_data_for_prompt(data: SWOTDataInput) -> str:
 def _parse_swot_scores(text: str) -> SWOTScore:
     """Parse AI response to extract percentage scores for each SWOT category."""
     try:
-        # Expect JSON structure for scores
         json_match = re.search(r'\{.*\}', text, re.DOTALL)
         if not json_match:
             raise ValueError("No valid JSON found in response")
@@ -58,7 +57,6 @@ def _parse_swot_scores(text: str) -> SWOTScore:
 def _parse_swot_recommendations(text: str) -> SWOTRecommendation:
     """Parse AI response to extract recommendations for each SWOT category."""
     try:
-        # Expect JSON structure and parse it directly
         json_match = re.search(r'\{.*\}', text, re.DOTALL)
         if not json_match:
             raise ValueError("No valid JSON found in response")
@@ -66,18 +64,14 @@ def _parse_swot_recommendations(text: str) -> SWOTRecommendation:
         data = json.loads(json_match.group(0))
         recommendations = data.get("recommendations", {})
         
-        # Format recommendations as a single string with numbered points and newlines
         for category in ["strengths", "weaknesses", "opportunities", "threats"]:
             if category in recommendations:
-                # Remove numbered prefixes and format as a single string
                 cleaned_recs = [
                     re.sub(r'^\d+\.\s*', '', rec).strip() 
                     for rec in recommendations[category]
                 ]
-                # Ensure 3-4 recommendations, fill with defaults if needed
                 if not isinstance(cleaned_recs, list) or len(cleaned_recs) < 3:
                     cleaned_recs = ["No specific recommendations available."] * 3
-                # Add numbered prefixes back for readability in the output string
                 recommendations[category] = "\n".join(
                     f"{i+1}. {rec}" for i, rec in enumerate(cleaned_recs[:4])
                 )
@@ -103,10 +97,8 @@ def _parse_swot_recommendations(text: str) -> SWOTRecommendation:
 async def generate_swot_analysis(data: SWOTDataInput) -> SWOTAnalysisResponse:
     """Generate SWOT analysis with AI-estimated scores and recommendations."""
     
-    # Store the latest SWOT input in memory
     store.last_swot_input = data
     
-    # Format data for AI prompt
     formatted_data = _format_swot_data_for_prompt(data)
     
     system_prompt = """
@@ -167,7 +159,6 @@ async def generate_swot_analysis(data: SWOTDataInput) -> SWOTAnalysisResponse:
         
         analysis_text = response.choices[0].message.content
         
-        # Parse scores and recommendations
         scores = _parse_swot_scores(analysis_text)
         recommendations = _parse_swot_recommendations(analysis_text)
         

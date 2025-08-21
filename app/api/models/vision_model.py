@@ -7,7 +7,7 @@ class VisionInput(BaseModel):
     vision_statement: str
     tone: Optional[str] = "coach"
 
-# Response validation (Reverted to original clean structure)
+# Response validation 
 class VisionResponse(BaseModel):
     """
     Response model for a valid or invalid vision analysis.
@@ -16,4 +16,4 @@ class VisionResponse(BaseModel):
     vision_summary: Optional[str] = None
     vision_recommendations: Optional[List[str]] = None
     vision_alt: Optional[List[str]] = Field(default=None, min_length=3, max_length=3)
-    error: Optional[str] = None  # ✅ Add this for error handling
+    error: Optional[str] = None 

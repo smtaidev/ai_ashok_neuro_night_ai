@@ -86,7 +86,6 @@ async def generate_challenge_recommendations(
     trends = request.trends
     challenges = request.challenges
 
-    # Prepare prompt text
     prompt = "You are a business strategy consultant. You are tasked with providing strategic recommendations for the organization's top challenges.\n\n"
 
     prompt += "CHALLENGES:\n"

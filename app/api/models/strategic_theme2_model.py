@@ -3,7 +3,7 @@
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
  
-# Assuming these models exist in other files
+ # request validation: context information
 class SWOTDataInput(BaseModel):
     strengths: List[str]
     weaknesses: List[str]
@@ -18,7 +18,7 @@ class ScoredChallengeInput(BaseModel):
     description: str
     risk_score: int
  
-# --- Input Models ---
+#  Input Models 
 class ThemeItem(BaseModel):
     name: str
     description: str
@@ -44,13 +44,13 @@ class StrategyContext(BaseModel):
     trends: Optional[str] = None
     capabilities: Optional[List[Capability]] = None
 
-# --- Main Request Model (Profile removed) ---
+#  Main Request Model 
 class CombinedAnalysisRequest(BaseModel):
     themes: List[ThemeItem]
     context: StrategyContext
     tone: Optional[str] = "coach"
  
-# --- Individual Request Models (Benchmarking removed) ---
+#  Individual Request Models
 class GapDetectionRequest(BaseModel):
     themes: List[ThemeItem]
     context: StrategyContext
@@ -61,7 +61,7 @@ class WordingSuggestionsRequest(BaseModel):
 class GoalMappingRequest(BaseModel):
     themes: List[ThemeItem]
  
-# --- Response Models (Benchmarking removed) ---
+#  Response Models 
 class GapDetectionResponse(BaseModel):
     missing_themes: str
     overlapping_themes: str
@@ -87,8 +87,8 @@ class GoalMapping(BaseModel):
  
 class GoalMappingResponse(BaseModel):
     mapped_themes: List[GoalMapping]
- 
-# --- Final Combined Response Model (Benchmarking removed) ---
+
+#  Final Combined Response Model
 class CombinedResponse(BaseModel):
     gap_detection: Optional[GapDetectionResponse] = None
     wording_suggestions: Optional[WordingSuggestionsResponse] = None
