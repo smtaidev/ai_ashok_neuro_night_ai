@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: clarhet-ai-api
+    container_name: Zenith-ai-api
     ports:
       - "8027:8027"
       - "8502:8502"
