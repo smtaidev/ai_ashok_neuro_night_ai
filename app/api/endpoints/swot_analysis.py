@@ -50,5 +50,9 @@ async def create_swot_analysis(
             status_code=500,
             detail=f"An error occurred while processing SWOT analysis: {str(e)}"
         )
+        
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+
 
 

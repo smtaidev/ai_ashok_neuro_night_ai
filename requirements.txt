@@ -7,3 +7,4 @@ openai
 streamlit
 plotly
 requests
+tiktoken

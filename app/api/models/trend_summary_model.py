@@ -4,6 +4,14 @@ from pydantic import BaseModel
 from typing import List, Optional
 from ..models.strategic_theme2_model import Capability
 
+# tracking token usages for AI 
+class TokenUsage(BaseModel):
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+    
+    
+
 # Validating the single question-answer-impact structure 
 class TrendAnswer(BaseModel):
     question: Optional[str] = None
@@ -29,6 +37,7 @@ class TrendDataInput(BaseModel):
     value: Optional[str] = None
     purpose: Optional[str] = None
     capabilities: Optional[List[Capability]] = None
+    
 
 
 
@@ -52,3 +61,4 @@ class TrendCombinedResponse(BaseModel):
     radar_executive_summary: Optional[List[str]] = []
     radar_recommendation: Optional[List[str]] = []
     error: Optional[str] = None
+    token_count: Optional[TokenUsage] = None

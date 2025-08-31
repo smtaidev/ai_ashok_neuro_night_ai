@@ -1,15 +1,21 @@
-# app/services/trend_summary_service.py
-
 from openai import AsyncOpenAI
 import json
 import re
+import tiktoken  # NEW
 from ..core.config import settings
 from ..core.AI_models import MODEL, TEMPERATURE, MAX_TOKENS
-from ..api.models.trend_summary_model import TrendDataInput, TrendSummaryResponse, TrendCombinedResponse
+from ..api.models.trend_summary_model import TrendDataInput, TrendSummaryResponse, TrendCombinedResponse, TokenUsage  # UPDATED
 from ..memory import store
 from ..utils.Tone import TONE_GUIDELINES
 
 client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+
+
+# ✅ Token counter function
+def count_tokens(text: str, model: str = MODEL) -> int:
+    encoding = tiktoken.encoding_for_model(model)
+    return len(encoding.encode(text))
+
 
 def _format_data_for_prompt(data: TrendDataInput) -> str:
     section_titles = {
@@ -40,8 +46,8 @@ def _format_data_for_prompt(data: TrendDataInput) -> str:
             prompt_text += "\n"
     return prompt_text
 
+
 def _parse_combined_response(text: str) -> TrendCombinedResponse:
-    """Parse the entire AI JSON response into a TrendCombinedResponse object."""
     try:
         json_match = re.search(r'\{.*\}', text, re.DOTALL)
         if not json_match:
@@ -52,7 +58,6 @@ def _parse_combined_response(text: str) -> TrendCombinedResponse:
 
         data = json.loads(json_match.group(0))
 
-        # Parse the nested summary object
         summary_data = data.get("summary", {})
         summary = TrendSummaryResponse(
             key_opportunities=summary_data.get("key_opportunities", "N/A"),
@@ -63,7 +68,6 @@ def _parse_combined_response(text: str) -> TrendCombinedResponse:
             irrelevant_answers=data.get("irrelevant_answers", [])
         )
 
-        # Parse the other top-level fields
         return TrendCombinedResponse(
             summary=summary,
             trend_synthesis=data.get("trend_synthesis", []),
@@ -83,9 +87,13 @@ def _parse_combined_response(text: str) -> TrendCombinedResponse:
             error=f"An unexpected error occurred during parsing: {str(e)}"
         )
 
+
 async def generate_combined_summary_and_trends(data: TrendDataInput) -> TrendCombinedResponse:
     store.last_trend_input = data
     formatted_data = _format_data_for_prompt(data)
+
+    # ✅ Count input tokens
+    input_tokens = count_tokens(formatted_data)
 
     tone = data.tone or "coach"
     tone_guideline = TONE_GUIDELINES.get(tone, TONE_GUIDELINES["coach"])  
@@ -124,23 +132,16 @@ async def generate_combined_summary_and_trends(data: TrendDataInput) -> TrendCom
             "strengths": "...",
             "significant_risks": "...",
             "challenges": "...",
-            "strategic_recommendations": "..."
+            "strategic_recommendations": "...",
+            "irrelevant_answers": []
           }},
-          "trend_synthesis": [
-            "Trend 1: Detailed description of the first major synthesized trend.",
-            "Trend 2: Detailed description of the second major synthesized trend.",
-            "Trend 3: Detailed description of the third major synthesized trend."
-          ],
-          "early_warnings": "Concise summary of blind spots, underappreciated risks, or mismatched intensity.",
-          "strategic_opportunities": [
-            "A forward-looking idea or new direction the business could explore.",
-            "Another forward-looking idea or new direction."
-          ],
-          "analyst_recommendations": "Direct and actionable recommendations for the leadership team.",
-          "irrelevant_answers": [
-            "In response to the question '{{question}}', the provided answer '{{answer}}' was not relevant to business strategy, market trends, or innovation. Please provide a more relevant answer."
-          ]
-        }}    """
+          "trend_synthesis": [...],
+          "early_warnings": "...",
+          "strategic_opportunities": [...],
+          "analyst_recommendations": "..."
+        }}
+        ```
+    """
 
     try:
         result = await client.chat.completions.create(
@@ -150,18 +151,26 @@ async def generate_combined_summary_and_trends(data: TrendDataInput) -> TrendCom
                 {"role": "user", "content": formatted_data}
             ],
             temperature=TEMPERATURE,
-            max_tokens=2048  
+            max_tokens=2048
         )
 
         raw_response = result.choices[0].message.content.strip()
-
         parsed_response = _parse_combined_response(raw_response)
 
         if parsed_response.error:
             return parsed_response
 
-        radar_summary, radar_recommendations = await generate_radar_analysis(data)
+        # ✅ Get token usage from OpenAI response
+        output_tokens = result.usage.completion_tokens
+        total_tokens = result.usage.total_tokens
 
+        parsed_response.token_count = TokenUsage(
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            total_tokens=total_tokens
+        )
+
+        radar_summary, radar_recommendations = await generate_radar_analysis(data)
         parsed_response.radar_executive_summary = radar_summary
         parsed_response.radar_recommendation = radar_recommendations
 
