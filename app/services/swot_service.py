@@ -99,6 +99,12 @@ async def generate_swot_analysis(data: SWOTDataInput) -> SWOTAnalysisResponse:
     
     store.last_swot_input = data
     
+        # ✅ Check if all inputs are empty
+    if not (data.strengths or data.weaknesses or data.opportunities or data.threats):
+        raise ValueError("No SWOT data provided. Please provide at least one SWOT category with content.")
+
+
+    
     formatted_data = _format_swot_data_for_prompt(data)
     
     system_prompt = """
